@@ -9,5 +9,5 @@ class User
 
 enum UserRole
 {
-    User, Admin
+    User, Admin, Scorekeeper
 }
