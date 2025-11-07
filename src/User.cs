@@ -2,12 +2,12 @@ class User
 {
     public required String userID;
     public required String email;
-    public required ulong passwordHash;
+    public required String passwordHash;
     public required UserRole role;
 
     // Get methods
     public String getUserEmail() { return email; }
-    public ulong getUserPasswordHash() { return passwordHash; }
+    public String getUserPasswordHash() { return passwordHash; }
     public UserRole getUserRole() { return role; }
 
     // Set methods
