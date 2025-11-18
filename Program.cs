@@ -1,12 +1,28 @@
-﻿using System.Net;
+﻿using System.Diagnostics;
+using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 
+//start WebSocket server
 HttpListener listener = new();
 listener.Prefixes.Add("http://localhost:8080/");
 listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
+//open HTML interface in default browser
+System.Diagnostics.Process process = new System.Diagnostics.Process();
+try
+{
+    process.StartInfo.UseShellExecute = true;
+    process.StartInfo.FileName = "..\\..\\..\\src\\UI\\main.html";
+    process.Start();
+}
+catch 
+{
+    Console.WriteLine("Error opening HTML interface in browser.");
+}
+
+//open WebSocket connection and handle messages
 while (true)
 {
     HttpListenerContext context = await listener.GetContextAsync();
