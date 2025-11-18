@@ -1,5 +1,5 @@
 class Sport
 {
-    public required String sportID;
+    public required int sportID;
     public required String sportName;
 }

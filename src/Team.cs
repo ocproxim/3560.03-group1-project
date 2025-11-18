@@ -2,7 +2,7 @@
 
 public class Team
 {
-    public required String teamID;
+    public required int teamID;
     public required String teamName;
     public required String homeTown;
 

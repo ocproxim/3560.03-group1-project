@@ -1,6 +1,6 @@
 class User
 {
-    public required String userID;
+    public required int userID;
     public required String email;
     public required String passwordHash;
     public required UserRole role;
@@ -19,7 +19,7 @@ class User
 
 enum UserRole
 {
-    User, Admin, Scorekeeper
+    User = 0, Admin = 1, Scorekeeper = 2
 }
 
 

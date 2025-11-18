@@ -2,7 +2,7 @@
 
 public class StatKind
 {
-    public required String statkindID;
+    public required int statkindID;
     public required String statName;
     public required String unit;
 }

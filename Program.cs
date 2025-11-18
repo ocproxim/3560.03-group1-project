@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
+using Search;
 
 //start WebSocket server
 HttpListener listener = new();
@@ -9,15 +10,20 @@ listener.Prefixes.Add("http://localhost:8080/");
 listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
+//This relative path is from the executable location, so fix it if necessary when testing
+DBConnection dBConnection = new DBConnection("./sqlite.db");
+
 //open HTML interface in default browser
 System.Diagnostics.Process process = new System.Diagnostics.Process();
 try
 {
     process.StartInfo.UseShellExecute = true;
-    process.StartInfo.FileName = "..\\..\\..\\src\\UI\\main.html";
+
+    //This relative path is from the executable location, so fix it if necessary when testing
+    process.StartInfo.FileName = "./src/UI/main.html";
     process.Start();
 }
-catch 
+catch
 {
     Console.WriteLine("Error opening HTML interface in browser.");
 }
@@ -50,13 +56,22 @@ while (true)
             Console.WriteLine($"Received: {message}");
 
             var queryData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(message);
+            if (queryData != null
+                && queryData.TryGetValue("sport", out string? sport)
+                && queryData.TryGetValue("type", out string? type)
+                && queryData.TryGetValue("query", out string? query)
+                )
+            {
 
-            // TODO: Query your database here using `message`
+                dBConnection.BasicWebQuery(sport, Enum.Parse<SearchType>(type, true), query);
 
+
+            }
             string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 
             await socket.SendAsync(responseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+
         }
     }
     else

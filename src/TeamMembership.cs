@@ -2,7 +2,7 @@
 
 public class TeamMembership
 {
-    public required String membershipID;
+    public required int membershipID;
     public required String Season;
     public required int jerseyNumber;
 
