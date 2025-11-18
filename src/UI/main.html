@@ -18,9 +18,9 @@
         <div class="navbar">
             <nav>
                 <ul>
-                    <la><a href='#'>Home</a></la>
-                    <la><a href='#'>Search</a></la>
-                    <la><a href='#'>Login</a></la>
+                    <la><a href='main.html'>Home</a></la>
+                    <la><a href='main.html'>Search</a></la>
+                    <la><a href='main.html'>Login</a></la>
                 </ul>
             </nav>
           </div>
@@ -31,18 +31,37 @@
       <h3>Sports Statistic Archive</h3>
      </div>
 
-    <!-- Body -->
-    <div class = "search-container">
-      <!-- Get user search information -->
-      <form id="search">
-        <input type="search" id="searchInput" placeholder="">
-        <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-      </form>   
-      <!-- JavaScript to get Search Info--> 
-      <script src="main.js"></script>
+    <!-- Search Container -->
+     <div class="search-container">
+         <!-- Get user search information -->
+         <form id="search">
+             <select id="sportType">
+                 <option value="">-- Select a Sport --</option>
+                 <option value="baseball">Baseball</option>
+                 <option value="basketball">Basketball</option>
+                 <option value="soccer">Soccer</option>
+             </select>
 
-    </div>
+             <select id="searchType">
+                 <option value="">-- Select a Search Type --</option>
+                 <option value="game">Game</option>
+                 <option value="player">Player</option>
+                 <option value="team">Team</option>
+             </select>
+
+             <input type="search" id="searchInput" placeholder="">
+             <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+         </form>
+         <!-- JavaScript to get Search Info-->
+         <script src="main.js"></script>
+
+     </div>
     
+      <!-- Search Results -->
+      <div class="search-results">
+
+      </div>
+
   </body>
 
 </html>

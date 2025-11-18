@@ -76,7 +76,7 @@ h3 {
   /* search container*/
 .search-container{
     display: flex;
-    align-items: center;
+    text-align: center;
     width: 85%;
     margin-left: auto;
     margin-right: auto;
@@ -84,14 +84,20 @@ h3 {
     background-color: var(--nav-color);
     border-radius: 15px;  
 }
+.search-container input {
+    width: 500px;
+    height: 25px;
+    margin-left: 10px;
+    justify-content: center;
+}
 .search-container button {
-  color: var(--search-text);
-  border: none;
-  padding: 7px; 
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 16px;
+    color: var(--search-text);
+    border: none;
+    padding: 7px; 
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 16px;
 }
 .search-container button:hover {
-  background-color: var(--hover-color);
+    background-color: var(--hover-color);
 }
