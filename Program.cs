@@ -63,6 +63,7 @@ while (true)
             {
                 var searchType = Enum.Parse<SearchType>(type, true);
                 var jsonResult = Search.BasicWebQuery(dBConnection, sport, searchType, query);
+                Console.WriteLine(jsonResult);
 
 
             }

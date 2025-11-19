@@ -25,6 +25,17 @@ public class StatsDB
         }
         return retVal;
     }
+    public List<Player> GetPlayersByTeam(Team team)
+    {
+        var players = GetPlayers();
+        var memberships = GetMembershipsByTeam(team);
+
+        var filtered = from player in players where memberships.Find(m => m.playerID == player.playerID) != null select player;
+
+        return filtered.ToList();
+
+    }
+
     public List<Game> GetGames()
     {
         var sqlCommand = connection.CreateCommand();
@@ -108,6 +119,21 @@ public class StatsDB
         }
         return retVal;
     }
+    public List<StatKind> GetStatKinds()
+    {
+        var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT statKindID,sportID,statName,unit FROM StatKinds";
+        var reader = sqlCommand.ExecuteReader();
+        List<StatKind> retVal = new List<StatKind>();
+        while (reader.Read())
+        {
+            retVal.Add(StatKind.FromReader(reader));
+        }
+        return retVal;
+
+    }
+
+
 
     public List<StatKind> GetStatKindsForSport(Sport sport)
     {
