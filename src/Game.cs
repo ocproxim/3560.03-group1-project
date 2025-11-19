@@ -5,8 +5,8 @@ using Microsoft.Data.Sqlite;
 public class Game
 {
     public int gameID;
-    public int homeTeam;
-    public int awayTeam;
+    public int homeTeamID;
+    public int awayTeamID;
     public float homeScore;
     public float awayScore;
     public String gameTime;
@@ -15,8 +15,8 @@ public class Game
     public Game(int id, int hID, int aID, float hscore, float ascore, string time, string v)
     {
         gameID = id;
-        homeTeam = hID;
-        awayTeam = aID;
+        homeTeamID = hID;
+        awayTeamID = aID;
         homeScore = hscore;
         awayScore = ascore;
         gameTime = time;
@@ -33,7 +33,7 @@ public class Game
     // Set methods
     public void setGameHomeScore(float newHomeScore) { homeScore = newHomeScore; }
     public void setGameAwayScore(float newAwayScore) { awayScore = newAwayScore; }
-    public void setGameTime(DateTime newGameTime) { gameTime = newGameTime.ToString(); }
+    public void setGameTime(DateTime newGameTime) { gameTime = newGameTime.ToShortDateString(); }
     public void setGameVenue(String newVenue) { venue = newVenue; }
 
     //DB methods
@@ -51,5 +51,7 @@ public class Game
 
         return new Game(id, hID, aID, hscore, ascore, time, v);
     }
+
+
 
 }

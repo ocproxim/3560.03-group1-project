@@ -65,7 +65,7 @@ public class Search
                         var stats = GetStatsForPlayerInGames(db, player, games);
                         if (stats.Count != 0)
                         {
-                            var key = $"{player.Name} (ID {player.playerID})";
+                            var key = $"{player.name} (ID {player.playerID})";
                             results.Add(key, stats);
                         }
                     }
@@ -80,7 +80,7 @@ public class Search
 
                 //Use a fuzzy string matching algorithm to compare query to player names, add them to results if they match above a certain threshold
                 var potentialPlayers = from player in players
-                                       where Fuzz.Ratio(player.Name, query) > 70
+                                       where Fuzz.Ratio(player.name, query) > 70
                                        select player;
                 if (potentialPlayers.Count() == 0)
                 {
@@ -93,7 +93,7 @@ public class Search
                     var stats = GetStatsForPlayerInGames(db, player, games);
                     if (stats.Count != 0)
                     {
-                        var key = $"{player.Name} (ID {player.playerID})";
+                        var key = $"{player.name} (ID {player.playerID})";
                         results.Add(key, stats);
                     }
                 }
@@ -130,7 +130,7 @@ public class Search
             foreach (var stat in statsIter)
             {
 
-                var statKind = sportStatKinds.Find(kind => kind.statkindID == stat.statKindID);
+                var statKind = sportStatKinds.Find(kind => kind.statKindID == stat.statKindID);
                 if (statKind == null)
                 {
 
