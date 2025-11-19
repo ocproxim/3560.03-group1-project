@@ -108,7 +108,7 @@ public class StatsDB
     public List<TeamMembership> GetMembershipsByTeam(Team team)
     {
         var sqlCommand = connection.CreateCommand();
-        sqlCommand.CommandText = "SELECT membershipID,season,jerseyNumber FROM TeamMemberships WHERE teamID = $teamID";
+        sqlCommand.CommandText = "SELECT membershipID,playerID,teamID,season,jerseyNumber FROM TeamMemberships WHERE teamID = $teamID";
         sqlCommand.Parameters.AddWithValue("$teamID", team.teamID);
         var reader = sqlCommand.ExecuteReader();
 
