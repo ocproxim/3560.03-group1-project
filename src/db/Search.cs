@@ -42,7 +42,8 @@ public class Search
             Console.WriteLine("Sport stat kinds was empty");
         }
 
-        var results = new Dictionary<String, List<PlayerGameStats>>();
+        //A Dictionary mapping a player to another dictionary where the key is the stat name and the value is a list of all the instances that were found during the search
+        var results = new Dictionary<String, Dictionary<String, List<float>>>();
 
         switch (type)
         {
@@ -60,7 +61,8 @@ public class Search
                     var teamPlayers = db.GetPlayersByTeam(team);
                     foreach (var player in teamPlayers)
                     {
-                        var stats = GetStatsForPlayer(db, player);
+                        var games = db.GetGamesByPlayer(player);
+                        var stats = GetStatsForPlayerInGames(db, player, games);
                         if (stats.Count != 0)
                         {
                             var key = $"{player.Name} (ID {player.playerID})";
@@ -87,7 +89,8 @@ public class Search
 
                 foreach (var player in potentialPlayers)
                 {
-                    var stats = GetStatsForPlayer(db, player);
+                    var games = db.GetGamesByPlayer(player);
+                    var stats = GetStatsForPlayerInGames(db, player, games);
                     if (stats.Count != 0)
                     {
                         var key = $"{player.Name} (ID {player.playerID})";
@@ -105,17 +108,13 @@ public class Search
 
     }
 
-    static List<PlayerGameStats> GetStatsForPlayer(StatsDB db, Player player)
+    static Dictionary<String, List<float>> GetStatsForPlayerInGames(StatsDB db, Player player, IEnumerable<Game> games)
     {
         var sportStatKinds = db.GetStatKinds();
-        List<StatData> statData = new List<StatData>();
-        var games = db.GetGamesByPlayer(player);
-        if (games.Count == 0)
-        {
-            Console.WriteLine("Games list was empty");
-        }
+        Dictionary<String, List<float>> statData = new Dictionary<String, List<float>>();
 
-        var retVal = new List<PlayerGameStats>();
+
+        var retVal = new Dictionary<String, List<float>>();
 
         foreach (var game in games)
         {
@@ -130,6 +129,7 @@ public class Search
 
             foreach (var stat in statsIter)
             {
+
                 var statKind = sportStatKinds.Find(kind => kind.statkindID == stat.statKindID);
                 if (statKind == null)
                 {
@@ -145,53 +145,33 @@ public class Search
                 }
 
 
-                statData.Add(new StatData
+
+                if (retVal.ContainsKey(statKind.statName))
                 {
-                    statName = statKind.statName,
-                    statValue = stat.value
-                });
+
+                    var statList = retVal.GetValueOrDefault(statKind.statName);
+                    statList.Add(stat.value);
+
+                }
+                else
+                {
+                    retVal.Add(statKind.statName, new List<float>());
+                    var statList = retVal.GetValueOrDefault(statKind.statName);
+                    statList.Add(stat.value);
+
+                }
 
             }
-            if (statData.Count == 0) { continue; }
 
-            var g = new PlayerGameStats
-            {
-                gameTime = game.gameTime,
-                venue = game.venue,
-                homeScore = game.homeScore,
-                awayScore = game.awayScore,
-                stats = statData
-            };
-
-            retVal.Add(g);
         }
+
         return retVal;
     }
 }
 
 
 
-//A player's stats for a single game
-public class PlayerGameStats
-{
-    public required String gameTime { get; set; }
-    public required String venue { get; set; }
 
-    public required float homeScore { get; set; }
-
-    public required float awayScore { get; set; }
-
-    public required List<StatData> stats { get; set; }
-
-}
-//An individual instance of a stat in a game
-public class StatData
-{
-    public required String statName { get; set; }
-    public required float statValue { get; set; }
-
-
-}
 
 
 
