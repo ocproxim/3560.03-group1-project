@@ -4,14 +4,14 @@ using Microsoft.Data.Sqlite;
 
 public class StatKind
 {
-    public int statkindID;
+    public int statKindID;
     public int sportID;
     public String statName;
     public String unit;
 
     public StatKind(int id, int spId, string name, string u)
     {
-        statkindID = id;
+        statKindID = id;
         sportID = spId;
         statName = name;
         unit = u;

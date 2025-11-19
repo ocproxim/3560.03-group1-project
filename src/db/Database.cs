@@ -12,6 +12,398 @@ public class StatsDB
             connection.Open();
         }
     }
+    public bool RemoveGame(int gameID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Games WHERE gameID = @gameID";
+        command.Parameters.AddWithValue("@gameID", gameID);
+
+        // We do NOT decrement gameCount here. 
+        // If we did, the next Insert would try to reuse an ID that might still exist, causing a collision.
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemovePlayer(int playerID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Players WHERE playerID = @playerID";
+        command.Parameters.AddWithValue("@playerID", playerID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveTeam(int teamID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Teams WHERE teamID = @teamID";
+        command.Parameters.AddWithValue("@teamID", teamID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveSport(int sportID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Sports WHERE sportID = @sportID";
+        command.Parameters.AddWithValue("@sportID", sportID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveStatKind(int statKindID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM StatKinds WHERE statKindID = @statKindID";
+        command.Parameters.AddWithValue("@statKindID", statKindID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveStatInstance(int statInstanceID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM StatInstances WHERE statInstanceID = @statInstanceID";
+        command.Parameters.AddWithValue("@statInstanceID", statInstanceID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveTeamMembership(int membershipID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM TeamMemberships WHERE membershipID = @membershipID";
+        command.Parameters.AddWithValue("@membershipID", membershipID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool RemoveUser(int userID)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "DELETE FROM Users WHERE userID = @userID";
+        command.Parameters.AddWithValue("@userID", userID);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+    public bool UpdateGame(Game game)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Games SET " +
+                              "homeTeamID = @homeTeamID, " +
+                              "awayTeamID = @awayTeamID, " +
+                              "homeScore = @homeScore, " +
+                              "awayScore = @awayScore, " +
+                              "gameTime = @gameTime, " +
+                              "venue = @venue " +
+                              "WHERE gameID = @gameID";
+
+        command.Parameters.AddWithValue("@gameID", game.gameID);
+        command.Parameters.AddWithValue("@homeTeamID", game.homeTeamID);
+        command.Parameters.AddWithValue("@awayTeamID", game.awayTeamID);
+        command.Parameters.AddWithValue("@homeScore", game.homeScore);
+        command.Parameters.AddWithValue("@awayScore", game.awayScore);
+        command.Parameters.AddWithValue("@gameTime", game.gameTime);
+        command.Parameters.AddWithValue("@venue", game.venue);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdatePlayer(Player player)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Players SET " +
+                              "name = @name, " +
+                              "dateOfBirth = @dateOfBirth, " +
+                              "height = @height, " +
+                              "weight = @weight " +
+                              "WHERE playerID = @playerID";
+
+        command.Parameters.AddWithValue("@playerID", player.playerID);
+        command.Parameters.AddWithValue("@name", player.name);
+        command.Parameters.AddWithValue("@dateOfBirth", player.dateOfBirth);
+        command.Parameters.AddWithValue("@height", player.height);
+        command.Parameters.AddWithValue("@weight", player.weight);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateTeam(Team team)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Teams SET " +
+                              "teamName = @teamName, " +
+                              "homeTown = @homeTown " +
+                              "WHERE teamID = @teamID";
+
+        command.Parameters.AddWithValue("@teamID", team.teamID);
+        command.Parameters.AddWithValue("@teamName", team.teamName);
+        command.Parameters.AddWithValue("@homeTown", team.homeTown);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateSport(Sport sport)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Sports SET " +
+                              "sportName = @sportName " +
+                              "WHERE sportID = @sportID";
+
+        command.Parameters.AddWithValue("@sportID", sport.sportID);
+        command.Parameters.AddWithValue("@sportName", sport.sportName);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateStatKind(StatKind statKind)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE StatKinds SET " +
+                              "sportID = @sportID, " +
+                              "statName = @statName, " +
+                              "unit = @unit " +
+                              "WHERE statKindID = @statKindID";
+
+        command.Parameters.AddWithValue("@statKindID", statKind.statKindID);
+        command.Parameters.AddWithValue("@sportID", statKind.sportID);
+        command.Parameters.AddWithValue("@statName", statKind.statName);
+        command.Parameters.AddWithValue("@unit", statKind.unit);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateStatInstance(StatInstance statInstance)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE StatInstances SET " +
+                              "playerID = @playerID, " +
+                              "gameID = @gameID, " +
+                              "statKindID = @statKindID, " +
+                              "timestamp = @timestamp, " +
+                              "value = @value " +
+                              "WHERE statInstanceID = @statInstanceID";
+
+        command.Parameters.AddWithValue("@statInstanceID", statInstance.statInstanceID);
+        command.Parameters.AddWithValue("@playerID", statInstance.playerID);
+        command.Parameters.AddWithValue("@gameID", statInstance.gameID);
+        command.Parameters.AddWithValue("@statKindID", statInstance.statKindID);
+        command.Parameters.AddWithValue("@timestamp", statInstance.timestamp);
+        command.Parameters.AddWithValue("@value", statInstance.value);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateTeamMembership(TeamMembership membership)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE TeamMemberships SET " +
+                              "playerID = @playerID, " +
+                              "teamID = @teamID, " +
+                              "season = @season, " +
+                              "jerseyNumber = @jerseyNumber " +
+                              "WHERE membershipID = @membershipID";
+
+        command.Parameters.AddWithValue("@membershipID", membership.membershipID);
+        command.Parameters.AddWithValue("@playerID", membership.playerID);
+        command.Parameters.AddWithValue("@teamID", membership.teamID);
+        command.Parameters.AddWithValue("@season", membership.season);
+        command.Parameters.AddWithValue("@jerseyNumber", membership.jerseyNumber);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+
+    public bool UpdateUser(User user)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "UPDATE Users SET " +
+                              "email = @email, " +
+                              "passwordHash = @passwordHash, " +
+                              "role = @role " +
+                              "WHERE userID = @userID";
+
+        command.Parameters.AddWithValue("@userID", user.userID);
+        command.Parameters.AddWithValue("@email", user.email);
+        command.Parameters.AddWithValue("@passwordHash", user.passwordHash);
+        command.Parameters.AddWithValue("@role", user.role);
+
+        return command.ExecuteNonQuery() > 0;
+    }
+    public Game InsertGame(int homeID, int awayID, float homeScore, float awayScore, DateTime time, string venue)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Games (homeTeamID, awayTeamID, homeScore, awayScore, gameTime, venue) " +
+                              "VALUES (@homeTeamID, @awayTeamID, @homeScore, @awayScore, @gameTime, @venue); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@homeTeamID", homeID);
+        command.Parameters.AddWithValue("@awayTeamID", awayID);
+        command.Parameters.AddWithValue("@homeScore", homeScore);
+        command.Parameters.AddWithValue("@awayScore", awayScore);
+        command.Parameters.AddWithValue("@gameTime", time.ToShortDateString()); // Matching your original string format
+        command.Parameters.AddWithValue("@venue", venue);
+
+        long newID = (long)command.ExecuteScalar();
+
+
+        return new Game((int)newID, homeID, awayID, homeScore, awayScore, time.ToShortDateString(), venue);
+    }
+
+    public Player InsertPlayer(string name, DateTime dateOfBirth, int height, int weight)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Players (name, dateOfBirth, height, weight) " +
+                              "VALUES (@name, @dateOfBirth, @height, @weight); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@name", name);
+        command.Parameters.AddWithValue("@dateOfBirth", dateOfBirth);
+        command.Parameters.AddWithValue("@height", height);
+        command.Parameters.AddWithValue("@weight", weight);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new Player((int)newID, name, dateOfBirth.ToShortDateString(), height, weight);
+    }
+
+    public Team InsertTeam(string teamName, string homeTown)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Teams (teamName, homeTown) " +
+                              "VALUES (@teamName, @homeTown); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@teamName", teamName);
+        command.Parameters.AddWithValue("@homeTown", homeTown);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new Team((int)newID, teamName, homeTown);
+    }
+
+    public Sport InsertSport(string sportName)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Sports (sportName) " +
+                              "VALUES (@sportName); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@sportName", sportName);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new Sport((int)newID, sportName);
+    }
+
+    public StatKind InsertStatKind(int sportID, string statName, string unit)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO StatKinds (sportID, statName, unit) " +
+                              "VALUES (@sportID, @statName, @unit); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@sportID", sportID);
+        command.Parameters.AddWithValue("@statName", statName);
+        command.Parameters.AddWithValue("@unit", unit);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new StatKind((int)newID, sportID, statName, unit);
+    }
+
+    public StatInstance InsertStatInstance(int playerID, int gameID, int statKindID, DateTime timestamp, float value)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO StatInstances (playerID, gameID, statKindID, timestamp, value) " +
+                              "VALUES (@playerID, @gameID, @statKindID, @timestamp, @value); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@playerID", playerID);
+        command.Parameters.AddWithValue("@gameID", gameID);
+        command.Parameters.AddWithValue("@statKindID", statKindID);
+        command.Parameters.AddWithValue("@timestamp", timestamp);
+        command.Parameters.AddWithValue("@value", value);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new StatInstance((int)newID, playerID, gameID, statKindID, timestamp.ToLongTimeString(), value);
+    }
+
+    public TeamMembership InsertTeamMembership(int playerID, int teamID, string season, int jerseyNumber)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO TeamMemberships (playerID, teamID, season, jerseyNumber) " +
+                              "VALUES (@playerID, @teamID, @season, @jerseyNumber); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@playerID", playerID);
+        command.Parameters.AddWithValue("@teamID", teamID);
+        command.Parameters.AddWithValue("@season", season);
+        command.Parameters.AddWithValue("@jerseyNumber", jerseyNumber);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new TeamMembership((int)newID, playerID, teamID, season, jerseyNumber);
+    }
+
+    public User InsertUser(string email, string passwordHash, UserRole role)
+    {
+        var command = connection.CreateCommand();
+        command.CommandText = "INSERT INTO Users (email, passwordHash, role) " +
+                              "VALUES (@email, @passwordHash, @role); " +
+                              "SELECT last_insert_rowid();";
+
+        command.Parameters.AddWithValue("@email", email);
+        command.Parameters.AddWithValue("@passwordHash", passwordHash);
+        command.Parameters.AddWithValue("@role", role);
+
+        long newID = (long)command.ExecuteScalar();
+
+        return new User((int)newID, email, passwordHash, role);
+    }
+    public List<User> GetUsers()
+    {
+        var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT userID,email,passwordHash,role FROM Users";
+        var reader = sqlCommand.ExecuteReader();
+
+        List<User> retVal = new List<User>();
+        while (reader.Read())
+        {
+            retVal.Add(User.FromReader(reader));
+        }
+        return retVal;
+
+    }
+
+    public List<TeamMembership> GetTeamMemberships()
+    {
+        var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT membershipID,playerID,teamID,season,jerseyNumber FROM TeamMemberships";
+        var reader = sqlCommand.ExecuteReader();
+
+        List<TeamMembership> retVal = new List<TeamMembership>();
+        while (reader.Read())
+        {
+            retVal.Add(TeamMembership.FromReader(reader));
+        }
+        return retVal;
+
+    }
+
+    public List<StatInstance> GetStatInstances()
+    {
+        var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT statInstanceID,playerID,gameID,statKindID,timestamp,value FROM StatInstances";
+
+        var reader = sqlCommand.ExecuteReader();
+        List<StatInstance> retVal = new List<StatInstance>();
+        while (reader.Read())
+        {
+            retVal.Add(StatInstance.FromReader(reader));
+        }
+        return retVal;
+
+    }
     public List<Player> GetPlayers()
     {
         var sqlCommand = connection.CreateCommand();
@@ -87,7 +479,7 @@ public class StatsDB
         var teamList = playerTeams.ToList();
 
         var playedGames = from game in games
-                          where teamList.Find(t => (t.teamID == game.homeTeam) | (t.teamID == game.awayTeam)) != null
+                          where teamList.Find(t => (t.teamID == game.homeTeamID) | (t.teamID == game.awayTeamID)) != null
                           select game;
         return playedGames.ToList();
     }

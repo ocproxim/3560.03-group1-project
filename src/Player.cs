@@ -3,31 +3,31 @@ using Microsoft.Data.Sqlite;
 public class Player
 {
     public int playerID;
-    public String Name;
+    public String name;
     public String dateOfBirth;
-    public int Height;
-    public int Weight;
+    public int height;
+    public int weight;
 
     public Player(int id, string name, string dob, int h, int w)
     {
         playerID = id;
-        Name = name;
+        this.name = name;
         dateOfBirth = dob;
-        Height = h;
-        Weight = w;
+        height = h;
+        weight = w;
     }
 
     // Get methods
-    public String getPlayerName() { return Name; }
+    public String getPlayerName() { return name; }
     public DateTime getPlayerDOB() { return DateTime.Parse(dateOfBirth); }
-    public int getPlayerHeight() { return Height; }
-    public int getPlayerWeight() { return Weight; }
+    public int getPlayerHeight() { return height; }
+    public int getPlayerWeight() { return weight; }
 
     // Set methods
-    public void setPlayerName(String newName) { Name = newName; }
-    public void setPlayerHeight(DateTime newDOB) { dateOfBirth = newDOB.ToString(); }
-    public void setPlayerHeight(int newHeight) { Height = newHeight; }
-    public void setPlayerWeight(int newWeight) { Weight = newWeight; }
+    public void setPlayerName(String newName) { name = newName; }
+    public void setPlayerHeight(DateTime newDOB) { dateOfBirth = newDOB.ToShortDateString(); }
+    public void setPlayerHeight(int newHeight) { height = newHeight; }
+    public void setPlayerWeight(int newWeight) { weight = newWeight; }
 
     //DB methods
     public static Player FromReader(SqliteDataReader reader)
