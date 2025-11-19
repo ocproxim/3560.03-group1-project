@@ -1,8 +1,7 @@
-﻿using System.Diagnostics;
-using System.Net;
+﻿using System.Net;
 using System.Net.WebSockets;
 using System.Text;
-using Search;
+using static Search;
 
 //start WebSocket server
 HttpListener listener = new();
@@ -11,7 +10,7 @@ listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
 //This relative path is from the executable location, so fix it if necessary when testing
-DBConnection dBConnection = new DBConnection("./sqlite.db");
+StatsDB dBConnection = new StatsDB("./sqlite.db");
 
 //open HTML interface in default browser
 System.Diagnostics.Process process = new System.Diagnostics.Process();
@@ -62,8 +61,9 @@ while (true)
                 && queryData.TryGetValue("query", out string? query)
                 )
             {
-
-                dBConnection.BasicWebQuery(sport, Enum.Parse<SearchType>(type, true), query);
+                var searchType = Enum.Parse<SearchType>(type, true);
+                var jsonResult = Search.BasicWebQuery(dBConnection, sport, searchType, query);
+                Console.WriteLine(jsonResult);
 
 
             }
