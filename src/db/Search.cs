@@ -6,13 +6,12 @@
 }
  * */
 
-using Microsoft.Data.Sqlite;
 using System.Text.Json;
 using FuzzySharp;
 
 
 
-namespace Search
+public class Search
 {
     public enum SearchType
     {
@@ -20,188 +19,189 @@ namespace Search
         Team,
         Player
     }
-
-    public class DBConnection
+    public static string? BasicWebQuery(StatsDB db, string searchSport, SearchType type, String query)
     {
-        SqliteConnection connection;
-
-        public DBConnection(String databasePath)
+        Console.WriteLine(type);
+        if (db == null)
         {
-            connection = new SqliteConnection($"Data Source={databasePath}; Mode = ReadWrite;");
-            if (connection.State != System.Data.ConnectionState.Open)
-            {
-                connection.Open();
-            }
+            Console.WriteLine("DB connection failed");
+            return null;
         }
-
-        public void BasicWebQuery(string sportName, SearchType type, String query)
+        switch (type)
         {
-            if (connection == null)
-            {
-                return;
-            }
-            switch (type)
-            {
-                case SearchType.Game:
-                    break;
-                case SearchType.Team:
-                    break;
-                case SearchType.Player:
-                    var player_list = connection.CreateCommand();
-                    player_list.CommandText = "SELECT playerID,name FROM Players";
-                    var playerReader = player_list.ExecuteReader();
-                    List<int> playerIDs = new List<int>();
-                    List<string> playerNames = new List<string>();
-                    while (playerReader.Read())
+            case SearchType.Game:
+                Console.WriteLine("Game");
+                break;
+            case SearchType.Team:
+
+                Console.WriteLine("Team");
+                break;
+            case SearchType.Player:
+                Console.WriteLine("Player");
+                var players = db.GetPlayers();
+                if (players.Count == 0)
+                {
+                    Console.WriteLine("Players list was empty");
+                }
+
+                //Use a fuzzy string matching algorithm to compare query to player names, add them to results if they match above a certain threshold
+                var potentialPlayers = from player in players
+                                       where Fuzz.Ratio(player.Name, query) > 70
+                                       select player;
+                if (potentialPlayers.Count() == 0)
+                {
+                    Console.WriteLine("Fuzzy player search found nothing");
+                }
+
+                //Get sportID from sportName
+                var sports = db.GetSports();
+                var thisSport = sports.Find(sport => sport.sportName.ToLower() == searchSport.ToLower());
+                if (thisSport == null)
+                {
+
+                    Console.WriteLine("Did not find a sport that matched query");
+                    return null;
+                }
+
+                var sportStatKinds = db.GetStatKindsForSport(thisSport);
+                if (sportStatKinds.Count == 0)
+                {
+                    Console.WriteLine("Sport stat kinds was empty");
+                }
+
+                var results = new List<PlayerStatResults>();
+                foreach (var player in potentialPlayers)
+                {
+                    List<StatData> playerGameStats = new List<StatData>();
+                    var games = db.GetGamesByPlayer(player);
+                    if (games.Count == 0)
                     {
-                        //Use a fuzzy string matching algorithm to compare query to player names, add them to results if they match above a certain threshold
-                        var playerID = playerReader.GetInt32(0);
-                        var name = playerReader.GetString(1);
-                        var ratio = Fuzz.Ratio(query, name);
-                        if (ratio > 70)
+                        Console.WriteLine("Games list was empty");
+                    }
+                    foreach (var game in games)
+                    {
+                        var gameStats = db.GetStatInstancesForGame(game);
+                        if (gameStats.Count == 0)
                         {
-                            playerIDs.Add(playerID);
-                            playerNames.Add(name);
+                            Console.WriteLine("Stats by game query was empty");
                         }
-                    }
-                    //Get sportID from sportName
-                    var sports = connection.CreateCommand();
-                    sports.CommandText = "SELECT sportID FROM Sports WHERE UPPER(sportName) like UPPER($sportName)";
-                    sports.Parameters.AddWithValue("$sportName", sportName);
-                    var sportReader = sports.ExecuteReader();
-                    int sportID = -1;
-                    if (sportReader.Read())
-                    {
+                        var statsIter = from stat in gameStats
+                                        where stat.playerID == player.playerID && stat.gameID == game.gameID
+                                        select stat;
 
-                        sportID = sportReader.GetInt32(0);
-                    }
-
-                    var gameList = connection.CreateCommand();
-                    gameList.CommandText = "SELECT gameID,homeScore,awayScore,gameTime,venue FROM Games";
-                    var gameReader = gameList.ExecuteReader();
-                    List<PlayerStatResults> results = new List<PlayerStatResults>();
-                    while (gameReader.Read())
-                    {
-                        var gameID = gameReader.GetInt32(0);
-
-                        var homeScore = gameReader.GetFloat(1);
-
-                        var awayScore = gameReader.GetFloat(2);
-
-                        var gameTime = gameReader.GetString(3);
-
-                        var venue = gameReader.GetString(4);
-
-                        for (int i = 0; i < playerIDs.Count; i++)
+                        foreach (var stat in statsIter)
                         {
-                            //Get stats for this player in this game
-                            var statList = connection.CreateCommand();
-                            statList.CommandText = "SELECT statKindID,value FROM StatInstances WHERE gameID = $gameID AND playerID = $playerID";
-                            statList.Parameters.AddWithValue("$gameID", gameID);
-                            statList.Parameters.AddWithValue("$playerID", playerIDs[i]);
-                            var statReader = statList.ExecuteReader();
-                            List<StatData> stats = new List<StatData>();
-                            while (statReader.Read())
+                            var statKind = sportStatKinds.Find(kind => kind.statkindID == stat.statKindID);
+                            if (statKind == null)
                             {
-                                var statKindID = statReader.GetInt32(0);
-                                var statValue = statReader.GetFloat(1);
-                                var statNameCmd = connection.CreateCommand();
-                                statNameCmd.CommandText = "SELECT statName FROM StatKinds WHERE statKindID = $statKindID AND sportID = $sportID";
-                                statNameCmd.Parameters.AddWithValue("$statKindID", statKindID);
-                                statNameCmd.Parameters.AddWithValue("$sportID", sportID);
-                                var statNameReader = statNameCmd.ExecuteReader();
 
-                                String statName = "";
-                                if (statNameReader.Read())
-                                {
-                                    statName = statNameReader.GetString(0);
-                                }
-
-                                stats.Add(new StatData
-                                {
-                                    statName = statName,
-                                    statValue = statValue
-                                });
+                                Console.WriteLine("Stat kind was empty");
+                                continue;
                             }
-                            //Only add to results if there are stats for this player in this game
-                            if (stats.Count > 0)
+                            if (statKind.statName == null)
                             {
-                                //Find existing player in results
-                                var playerStatResult = results.Find(p => p.name == playerNames[i]);
-                                if (playerStatResult == null)
-                                {
-                                    playerStatResult = new PlayerStatResults
-                                    {
-                                        name = playerNames[i],
-                                        gameStats = new List<PlayerGameStats>()
-                                    };
-                                    results.Add(playerStatResult);
-                                }
-                                playerStatResult.gameStats.Add(new PlayerGameStats
-                                {
-                                    gameTime = gameTime,
-                                    venue = venue,
-                                    homeScore = homeScore,
-                                    awayScore = awayScore,
-                                    stats = stats
-                                });
+                                Console.WriteLine("Stat name was empty");
+                                continue;
+
                             }
+
+
+                            playerGameStats.Add(new StatData
+                            {
+                                statName = statKind.statName,
+                                statValue = stat.value
+                            });
+
                         }
-                    }
-                    foreach (var result in results)
-                    {
-                        Console.WriteLine($"Player Name: {result.name}");
-                        foreach (var gameStat in result.gameStats)
-                        {
 
-                            Console.WriteLine($"\tGame Time: {gameStat.gameTime}, Venue: {gameStat.venue}, Home Score: {gameStat.homeScore}, Away Score: {gameStat.awayScore}");
-                            foreach (var stat in gameStat.stats)
+                        //Only add to results if there are stats for this player in this game
+                        if (playerGameStats.Count > 0)
+                        {
+                            //Find existing player in results
+                            var playerStatResult = results.Find(p => p.name == player.Name);
+                            if (playerStatResult == null)
                             {
-                                Console.WriteLine($"\t\tStat Name: {stat.statName}, Stat Value: {stat.statValue}");
+
+                                playerStatResult = new PlayerStatResults
+                                {
+                                    name = player.Name,
+                                    gameStats = new List<PlayerGameStats>()
+                                };
+                                results.Add(playerStatResult);
                             }
+
+                            playerStatResult.gameStats.Add(new PlayerGameStats
+                            {
+                                gameTime = game.gameTime,
+                                venue = game.venue,
+                                homeScore = game.homeScore,
+                                awayScore = game.awayScore,
+                                stats = playerGameStats
+                            });
                         }
 
                     }
+                }
+                var j = JsonSerializer.Serialize(results);
+                return j;
+            default:
+                Console.WriteLine("Invalid query type");
+                return null;
 
-                    break;
-                default:
-                    break;
-
-            }
-            return;
         }
+        Console.WriteLine("Unimplemented");
+        return null;
     }
 
 }
 
-
+//Structure for returning data to the frontend
 public class PlayerStatResults
 {
-    public required String name;
+    public required String name { get; set; }
 
-    public required List<PlayerGameStats> gameStats;
+    public required List<PlayerGameStats> gameStats { get; set; }
 
 }
 
 public class PlayerGameStats
 {
-    public required String gameTime;
-    public required String venue;
+    public required String gameTime { get; set; }
+    public required String venue { get; set; }
 
-    public required float homeScore;
+    public required float homeScore { get; set; }
 
-    public required float awayScore;
+    public required float awayScore { get; set; }
 
-    public required List<StatData> stats;
+    public required List<StatData> stats { get; set; }
 
 }
 public class StatData
 {
-    public required String statName;
-    public required float statValue;
+    public required String statName { get; set; }
+    public required float statValue { get; set; }
+
 
 }
 
 
 
+/*
+                 Console.WriteLine($"{results.Count}");
+                foreach (var result in results)
+                {
+                    Console.WriteLine($"Player Name: {result.name}");
+                    foreach (var gameStat in result.gameStats)
+                    {
 
+                        Console.WriteLine($"\tGame Time: {gameStat.gameTime}, Venue: {gameStat.venue}, Home Score: {gameStat.homeScore}, Away Score: {gameStat.awayScore}");
+                        foreach (var stat in gameStat.stats)
+                        {
+                            Console.WriteLine($"\t\tStat Name: {stat.statName}, Stat Value: {stat.statValue}");
+                        }
+                    }
+
+                }
+
+
+ * */
