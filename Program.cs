@@ -1,7 +1,9 @@
-﻿using System.Diagnostics;
+﻿using System.Data.Common;
+using System.Diagnostics;
 using System.Net;
 using System.Net.WebSockets;
 using System.Text;
+using System.Text.Json;
 using Search;
 
 //start WebSocket server
@@ -11,16 +13,16 @@ listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
 //This relative path is from the executable location, so fix it if necessary when testing
-DBConnection dBConnection = new DBConnection("./sqlite.db");
+DBConnection dBConnection = new DBConnection("sqlite.db");
 
 //open HTML interface in default browser
-System.Diagnostics.Process process = new System.Diagnostics.Process();
+Process process = new Process();
 try
 {
     process.StartInfo.UseShellExecute = true;
 
     //This relative path is from the executable location, so fix it if necessary when testing
-    process.StartInfo.FileName = "./src/UI/main.html";
+    process.StartInfo.FileName = "..\\..\\src\\UI\\main.html";
     process.Start();
 }
 catch
@@ -58,15 +60,27 @@ while (true)
             var queryData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(message);
             if (queryData != null
                 && queryData.TryGetValue("sport", out string? sport)
+                //added season selection, might want to update search and database to use season as well
                 && queryData.TryGetValue("type", out string? type)
                 && queryData.TryGetValue("query", out string? query)
                 )
             {
 
                 dBConnection.BasicWebQuery(sport, Enum.Parse<SearchType>(type, true), query);
-
-
             }
+
+            else if( queryData != null
+                && queryData.TryGetValue("fetchSport", out string? fetchSport)
+                )
+            {
+                // Fetch a list of sport names from the DB and return as JSON array
+                var sportsList = dBConnection.FetchSports();
+                string sportsJson = JsonSerializer.Serialize(sportsList);
+                byte[] sportsBytes = Encoding.UTF8.GetBytes(sportsJson);
+                await socket.SendAsync(sportsBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                Console.WriteLine("Sent sports list to client.");
+            }
+            
             string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 

@@ -170,9 +170,29 @@ namespace Search
             }
             return;
         }
+
+        public List<string> FetchSports()
+        {
+            var sportNames = new List<string>();
+            string query = "SELECT sportID, sportName FROM Sports ORDER BY sportName"; 
+
+            using (var command = new SqliteCommand(query, connection))
+            {
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                        sportNames.Add(new Sport{ 
+                            sportID = reader.GetInt32(0), sportName = reader.GetString(1) }.sportName);
+                }
+            }
+        }
+            return sportNames;
+        }
+
+        //end class
     }
 
-}
 
 
 public class PlayerStatResults
@@ -200,6 +220,7 @@ public class StatData
     public required String statName;
     public required float statValue;
 
+}
 }
 
 
