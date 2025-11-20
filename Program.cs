@@ -75,16 +75,14 @@ while (true)
             {
                 // Fetch a list of sport names from the DB and return as JSON array
                 var sportsList = dBConnection.FetchSports();
-                string sportsJson = JsonSerializer.Serialize(sportsList);
-                byte[] sportsBytes = Encoding.UTF8.GetBytes(sportsJson);
+                byte[] sportsBytes = Encoding.UTF8.GetBytes(sportsList);
                 await socket.SendAsync(sportsBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent sports list to client.");
             }
             
-            string response = $"Received: {message}";
-            byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-
-            await socket.SendAsync(responseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+            //string response = $"Received: {message}";
+            //byte[] responseBytes = Encoding.UTF8.GetBytes(response);
+            //await socket.SendAsync(responseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
 
         }
     }

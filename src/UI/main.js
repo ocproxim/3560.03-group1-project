@@ -9,15 +9,14 @@ socket.addEventListener('open', () => {
 socket.addEventListener('message', (event) => {
     try {
         //get data from server
-        const data = JSON.stringify(event.data);
-        console.log(data);
+        const data = JSON.parse(event.data);
+        
         //check if array
         if (Array.isArray(data) && data.length > 0) {
-            if (data[0].hasOwnProperty('sportName')) {
-                const sportNames = data.map(item => item.sportName);
-                console.log("Fetched sports:", sportNames);
-                populateSportsDropdown(sportNames);
-            }
+            const sportNames = data
+            .map(sport => ({sportName: sport.sportName}));
+            console.log("Fetched sports:", sportNames);
+            populateSportsDropdown(sportNames);
         }
     } catch (error) {
         console.error("Error parsing message from server:", error);
@@ -81,14 +80,15 @@ function populateSportsDropdown(sportNames) {
     //create placeholder option
 
     const defaultOption = document.createElement('option');
-    defaultOption.textContent = '-- Please select a sport --';
+    defaultOption.textContent = '-- Select a sport --';
     defaultOption.value = '';
+    selectElement.appendChild(defaultOption);
 
     //populate options
     sportNames.forEach(sport => {
         const option = document.createElement('option');
-        option.value = sport;
-        option.textContent = sport;
+        option.value = sport.sportName;
+        option.textContent = sport.sportName;
         selectElement.appendChild(option);
     });
 
