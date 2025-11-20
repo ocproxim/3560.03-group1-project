@@ -1,3 +1,13 @@
+const socket = new WebSocket("ws://localhost:8080");
+
+socket.addEventListener('open', () => {
+    console.log("Connected to database server");
+});
+
+socket.addEventListener('message', (event) => {
+    console.log("Message from server:", event.data);
+});
+
 //get string input
 const loginForm = document.getElementById('login');
 const emailInput = document.getElementById('emailInput');
