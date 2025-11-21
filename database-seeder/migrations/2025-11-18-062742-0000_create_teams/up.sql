@@ -4,5 +4,5 @@ CREATE TABLE `Teams` (
 `sportID` INTEGER,
 `teamName` TEXT NOT NULL, 
 `homeTown` TEXT NOT NULL,
-FOREIGN KEY(`sportID`) REFERENCES Sports(`sportID`)
+FOREIGN KEY(`sportID`) REFERENCES Sports(`sportID`) ON DELETE CASCADE
 );
