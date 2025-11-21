@@ -9,8 +9,10 @@ class AuthCheck {
     }
 
     validateAuthentication(UserRole){
-        if (UserRole == -1 || UserRole == 0){
+        if (UserRole == 0){
             window.location.replace("main.html"); //replaces window when user is not logged in or a normal user
+        } else if (UserRole == null){
+            window.location.replace("login.html");
         } else {
             document.querySelector("body").style.display = "block"; //shows window to user after confirming authentication
         }
