@@ -6,6 +6,16 @@ socket.addEventListener('open', () => {
 });
 
 socket.addEventListener('message', (event) => {
+    try{
+        const data = event.data;
+        if (data.compare("-1")){
+            console.log("Wrong E-mail and/or Password");
+        } else {
+            localStorage.setItem("UserRole", data)
+        }
+    } catch (error){
+        console.error("ERROR parsing message from server:", error);
+    }
     console.log("Message from server:", event.data);
 });
 
