@@ -3,6 +3,8 @@ use diesel::{
     prelude::{AsChangeset, Identifiable, Insertable, Queryable},
 };
 
+use crate::pages::UIInteract;
+
 #[derive(Debug, Clone, Insertable, Identifiable, AsChangeset, Queryable, Selectable)]
 #[diesel(table_name=crate::schema::Teams)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
@@ -12,6 +14,47 @@ pub struct Team {
     pub sportID: Option<i32>,
     pub teamName: String,
     pub homeTown: String,
+}
+impl Team {
+    pub fn ui_row(&mut self, ui: &mut egui::Ui) -> UIInteract {
+        let mut input_changed = false;
+
+        ui.label(
+            self.teamID
+                .map(|id| id.to_string())
+                .unwrap_or_else(|| "New".to_string()),
+        );
+
+        if ui
+            .add(egui::TextEdit::singleline(&mut self.teamName).hint_text("Team Name"))
+            .changed()
+        {
+            input_changed = true;
+        }
+
+        if ui
+            .add(egui::TextEdit::singleline(&mut self.homeTown).hint_text("Hometown"))
+            .changed()
+        {
+            input_changed = true;
+        }
+
+        let save_btn = if input_changed {
+            egui::Button::new("💾").fill(egui::Color32::from_rgb(100, 200, 100))
+        } else {
+            egui::Button::new("💾")
+        };
+
+        if ui.add(save_btn).on_hover_text("Save Changes").clicked() {
+            return UIInteract::Modified;
+        }
+
+        if ui.button("🗑").on_hover_text("Delete Team").clicked() {
+            return UIInteract::Delete;
+        }
+
+        UIInteract::None
+    }
 }
 
 impl Team {

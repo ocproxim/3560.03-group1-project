@@ -22,6 +22,17 @@ pub enum UserRole {
     Scorekeeper = 2,
 }
 
+impl UserRole {
+    pub fn new(val: i32) -> Self {
+        match val {
+            0 => UserRole::User,
+            1 => UserRole::Admin,
+            2 => UserRole::Scorekeeper,
+            _ => UserRole::User,
+        }
+    }
+}
+
 impl User {
     pub fn get_email(&self) -> &str {
         &self.email

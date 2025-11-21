@@ -17,7 +17,7 @@ fn main() -> eframe::Result {
         ..Default::default()
     };
     eframe::run_native(
-        "eframe template",
+        "Admin Panel",
         native_options,
         Box::new(|_| Ok(Box::new(admin_keeper_app::app::App::new(db)))),
     )

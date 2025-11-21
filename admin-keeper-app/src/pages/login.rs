@@ -7,7 +7,7 @@ use sha2::{Digest, Sha256};
 
 use crate::{
     app::AppState,
-    models::user::User,
+    models::user::{User, UserRole},
     pages::{Page, StateTransition, admin::AdminPage},
 };
 
@@ -44,7 +44,7 @@ impl LoginPage {
                     |ui: &mut Ui| {
                         ui.vertical_centered(|ui| {
                             ui.label(
-                                RichText::new("Login")
+                                RichText::new("Admin Panel")
                                     .size(30.0)
                                     .text_style(egui::TextStyle::Heading),
                             );
@@ -78,9 +78,14 @@ impl LoginPage {
                                 if result.as_ref().is_ok_and(|q| !q.is_empty()) {
                                     self.error_text = None;
                                     let user = result.unwrap().first().unwrap().clone();
-                                    let new_page = Box::new(AdminPage::new(db));
+                                    let urole = UserRole::new(user.role);
+                                    let new_page: Box<dyn Page> = match urole {
+                                        UserRole::User => Box::new(AdminPage::new(db)),
+                                        UserRole::Admin => Box::new(AdminPage::new(db)),
+                                        UserRole::Scorekeeper => Box::new(AdminPage::new(db)),
+                                    };
+
                                     retval = Some(Box::new(move |a: &mut AppState| {
-                                        println!("uhh");
                                         a.page = new_page;
                                     }));
                                 } else {
