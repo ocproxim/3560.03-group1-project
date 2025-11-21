@@ -67,6 +67,14 @@ while (true)
 
 
             }
+            if (queryData != null
+                && queryData.TryGetValue("email", out string? email)
+                && queryData.TryGetValue("password", out string? passwordHash)
+                )
+            {
+                var userRole = Search.authenticate(dBConnection, email, passwordHash);
+                Console.WriteLine(userRole);
+            }
             string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 
