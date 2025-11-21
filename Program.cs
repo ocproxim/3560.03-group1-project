@@ -83,6 +83,15 @@ while (true)
                 await socket.SendAsync(sportsBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent sports list to client.");
             }
+            if (queryData != null
+                && queryData.TryGetValue("email", out string? email)
+                && queryData.TryGetValue("password", out string? passwordHash)
+                )
+            {
+                var userRole = Search.authenticate(dBConnection, email, passwordHash);
+                Console.WriteLine(userRole);
+            }
+            string response = $"Received: {message}";
             
             /*string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);

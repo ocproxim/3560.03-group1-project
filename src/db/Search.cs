@@ -20,6 +20,29 @@ public class Search
         Team,
         Player
     }
+
+    public static int authenticate(StatsDB db, String email, String hashedPassword)
+    {
+        if (db == null)
+        {
+            Console.WriteLine("DB connection failed");
+            return -1;
+        }
+        //Get sportID from sportName
+        var users = db.GetUsers();
+        var matchedUser = users.Find(user => user.email.ToLower() == email.ToLower());
+        if (matchedUser == null)
+        {
+            Console.WriteLine("Did not find a user has that email");
+            return -1;
+        } else if (matchedUser.passwordHash != hashedPassword)
+        {
+            Console.WriteLine("Wrong Password");
+            return -1;
+        }
+        return (int)matchedUser.role;
+    }
+
     public static string? BasicWebQuery(StatsDB db, string searchSport, SearchType type, String query)
     {
         if (db == null)
