@@ -18,6 +18,10 @@ public class Sport
         return new Sport(id, name);
 
     }
+    public int getID()
+    {
+        return sportID;
+    }
 }
 
 

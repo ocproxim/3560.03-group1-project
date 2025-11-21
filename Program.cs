@@ -1,10 +1,16 @@
-﻿using System.Data.Common;
+﻿using Microsoft.AspNetCore.Http;
+using System;
+using System.Data.Common;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Globalization;
 using System.Net;
 using System.Net.WebSockets;
+using System.Reflection.Emit;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 using static Search;
 
 //start WebSocket server
@@ -83,6 +89,59 @@ while (true)
                 byte[] sportsBytes = Encoding.UTF8.GetBytes(sportsList);
                 await socket.SendAsync(sportsBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent sports list to client.");
+            }
+            else if( queryData != null
+                && queryData.TryGetValue("add", out string? addToDb)
+                )
+            {
+                switch (addToDb)
+                {
+                    case "player":
+                        if (queryData.TryGetValue("name", out string? playerName) &&
+                            queryData.TryGetValue("dob", out string? dob) &&
+                            queryData.TryGetValue("height", out string? height) &&
+                            queryData.TryGetValue("weight", out string? weight) &&
+                            DateTime.TryParseExact(dob, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime playerDob) &&
+                            int.TryParse(height, out int heightInt) &&
+                            int.TryParse(weight, out int weightInt))
+                        {
+                            dBConnection.InsertPlayer(playerName, playerDob, heightInt, weightInt);
+                        }
+                        break;
+                    case "team":
+                        if (queryData.TryGetValue("name", out string? teamName) &&
+                            queryData.TryGetValue("town", out string? town) &&
+                            queryData.TryGetValue("sport", out string? teamSport) &&
+                            (dBConnection.GetSportByName(teamSport) != null))
+                        {
+                            dBConnection.InsertTeam(dBConnection.GetSportByName(teamSport), teamName, town);
+                        }
+                        break;
+                    case "sport":
+                        if (queryData.TryGetValue("sport", out string? sportName))
+                        {
+                            if (sportName != "") dBConnection.InsertSport(sportName);
+                        }
+                        break;
+                    case "game":
+                        if (queryData.TryGetValue("hTeam", out string? homeTeam) &&
+                            queryData.TryGetValue("aTeam", out string? awayTeam) &&
+                            queryData.TryGetValue("hTeamScore", out string? homeTeamScore) &&
+                            queryData.TryGetValue("aTeamScore", out string? awayTeamScore) &&
+                            queryData.TryGetValue("time", out string? time) &&
+                            queryData.TryGetValue("venue", out string? venue) &&
+                            float.TryParse(homeTeamScore, out float hTeamScore) &&
+                            float.TryParse(awayTeamScore, out float aTeamScore) &&
+                            DateTime.TryParseExact(time, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime gameTime))
+                        {
+                            dBConnection.InsertGame(dBConnection.GetTeamByName(homeTeam).getTeamID(), 
+                                                    dBConnection.GetTeamByName(awayTeam).getTeamID(),
+                                                    hTeamScore, aTeamScore, gameTime,venue);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
             if (queryData != null
                 && queryData.TryGetValue("email", out string? email)

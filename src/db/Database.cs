@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using System;
 using System.Text.Json;
 
 public class StatsDB
@@ -242,7 +243,7 @@ public class StatsDB
         command.Parameters.AddWithValue("@awayTeamID", awayID);
         command.Parameters.AddWithValue("@homeScore", homeScore);
         command.Parameters.AddWithValue("@awayScore", awayScore);
-        command.Parameters.AddWithValue("@gameTime", time.ToShortDateString()); // Matching your original string format
+        command.Parameters.AddWithValue("@gameTime", time.ToString("yyyy-MM-dd")); // Matching your original string format
         command.Parameters.AddWithValue("@venue", venue);
 
         long newID = (long)command.ExecuteScalar();
@@ -271,12 +272,13 @@ public class StatsDB
     public Team InsertTeam(Sport sport, string teamName, string homeTown)
     {
         var command = connection.CreateCommand();
-        command.CommandText = "INSERT INTO Teams (teamName, homeTown) " +
-                              "VALUES (@teamName, @homeTown); " +
+        command.CommandText = "INSERT INTO Teams (sportID, teamName, homeTown) " +
+                              "VALUES (@sportID, @teamName, @homeTown); " +
                               "SELECT last_insert_rowid();";
 
         command.Parameters.AddWithValue("@teamName", teamName);
         command.Parameters.AddWithValue("@homeTown", homeTown);
+        command.Parameters.AddWithValue("@sportID", sport.getID());
 
         long newID = (long)command.ExecuteScalar();
 
@@ -590,6 +592,40 @@ public class StatsDB
             retVal.Add(StatInstance.FromReader(reader));
         }
         return retVal;
+    }
+
+    public Sport? GetSportByName(string name)
+    {
+        using var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT sportID, sportName FROM Sports WHERE sportName = $sportName";
+
+        sqlCommand.Parameters.AddWithValue("$sportName", name);
+
+        using var reader = sqlCommand.ExecuteReader();
+
+        if (reader.Read())
+        {
+            return new Sport(reader.GetInt32(0), reader.GetString(1));
+        }
+
+        return null;
+    }
+
+    public Team? GetTeamByName(string name)
+    {
+        using var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT teamID, sportID, teamName, homeTown FROM Teams WHERE teamName = $teamName";
+
+        sqlCommand.Parameters.AddWithValue("$teamName", name);
+
+        using var reader = sqlCommand.ExecuteReader();
+
+        if (reader.Read())
+        {
+            return new Team(reader.GetInt32(0), reader.GetInt32(1), reader.GetString(2), reader.GetString(3));
+        }
+
+        return null;
     }
 
 
