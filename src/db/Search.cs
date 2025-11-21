@@ -8,6 +8,7 @@
 
 using System.Text.Json;
 using FuzzySharp;
+using Microsoft.Data.Sqlite;
 
 
 
@@ -214,6 +215,52 @@ public class Search
                     }
 
                 }
+
+                    break;
+                default:
+                    break;
+
+            }
+            return;
+        }
+
+        
+
+        //end class
+    }
+
+
+
+public class PlayerStatResults
+{
+    public required String name;
+
+    public required List<PlayerGameStats> gameStats;
+
+}
+
+public class PlayerGameStats
+{
+    public required String gameTime;
+    public required String venue;
+
+    public required float homeScore;
+
+    public required float awayScore;
+
+    public required List<StatData> stats;
+
+}
+public class StatData
+{
+    public required String statName;
+    public required float statValue;
+
+}
+}
+
+
+
 
 
  * */
