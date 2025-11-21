@@ -4,7 +4,7 @@ CREATE TABLE `StatKinds` (
 `sportID` INTEGER ,
 `statName` TEXT NOT NULL,
 `unit` TEXT NOT NULL,
-FOREIGN KEY(`sportID`) REFERENCES Sports(`sportID`)
+FOREIGN KEY(`sportID`) REFERENCES Sports(`sportID`) ON DELETE CASCADE 
 );
 
 

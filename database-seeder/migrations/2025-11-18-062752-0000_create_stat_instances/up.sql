@@ -6,8 +6,9 @@ CREATE TABLE `StatInstances` (
 `statKindID` INTEGER NOT NULL,
 `timestamp` TEXT,
 `value` REAL NOT NULL,
-FOREIGN KEY(`playerID`) REFERENCES Players(`playerID`),
-FOREIGN KEY(`gameID`) REFERENCES Games(`gameID`)
+FOREIGN KEY(`statKindID`) REFERENCES StatKinds(`statKindID`) ON DELETE CASCADE,
+FOREIGN KEY(`playerID`) REFERENCES Players(`playerID`) ON DELETE CASCADE,
+FOREIGN KEY(`gameID`) REFERENCES Games(`gameID`) ON DELETE CASCADE
 );
 
 

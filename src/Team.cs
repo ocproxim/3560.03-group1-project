@@ -20,6 +20,8 @@ public class Team
     // Get methods
     public String getTeamName() { return teamName; }
     public String getTeamHome() { return homeTown; }
+    public int getTeamID() { return teamID; }
+
 
     // Set methods
     public void setTeamName(String newName) { teamName = newName; }
