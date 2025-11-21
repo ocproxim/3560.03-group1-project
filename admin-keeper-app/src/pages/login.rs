@@ -44,7 +44,7 @@ impl LoginPage {
                     |ui: &mut Ui| {
                         ui.vertical_centered(|ui| {
                             ui.label(
-                                RichText::new("Login")
+                                RichText::new("Admin Panel")
                                     .size(30.0)
                                     .text_style(egui::TextStyle::Heading),
                             );
