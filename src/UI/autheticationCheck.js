@@ -24,7 +24,9 @@ class AuthCheck {
     }
 }
 
-const AuthCheck = new AuthCheck();
+const AuthenticationCheck = new AuthCheck();
+/*
 document.querySelector(".logout").addEventListener("click", (e) => {
     AuthCheck.logOut();
 })
+*/

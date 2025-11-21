@@ -3,6 +3,7 @@ const socket = new WebSocket("ws://localhost:8080");
 
 //get string input
 const loginForm = document.getElementById('login');
+const cancelButton = document.querySelector('cancelbtn');
 const emailInput = document.getElementById('emailInput');
 const pwdInput = document.getElementById('pwdInput');
 
@@ -54,4 +55,8 @@ loginForm.addEventListener('submit', (e) => {
         socket.send(JSON.stringify(message));
         console.log("Sent:", message);
     }
+});
+
+cancelButton.addEventListener('click', function() {
+    window.location.replace("main.html");
 });
