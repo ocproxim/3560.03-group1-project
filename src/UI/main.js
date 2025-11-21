@@ -21,7 +21,7 @@ socket.addEventListener('message', (event) => {
             populateSportsDropdown(sportNames);
         }
         //check if player stats
-        else if( isPlayerGameData(data) ) {
+        else if( isValidStatData(data) ) {
             //create table for stats
             createStatsTable(data);
         }
@@ -67,82 +67,116 @@ searchForm.addEventListener('submit', function(event) {
     searchTypeForm.value = '';
 });
 
-// Checks if an object is player game data
-function isPlayerGameData(data) {
+// Checks if an object is valid data
+function isValidStatData(data) {
     if (typeof data !== "object" || data === null) return false;
 
-    // Check if it's a single player's stats object
+    // If data is a single record (player/team/game)
     const values = Object.values(data);
-    if (values.length === 0) return false;
-
-    // If all values are arrays of numbers of the same length, it's a player object
-    if (values.every(
-        arr => Array.isArray(arr) && arr.every(n => typeof n === "number")
-    )) {
-        const len = values[0].length;
-        if (values.every(arr => arr.length === len)) return true;
-        else return false;
+    if (values.length > 0 && values.every(arr => Array.isArray(arr) && arr.every(n => typeof n === 'number'))) {
+        return true;
     }
 
-    // If it's an object with player names as keys, check if at least one value is a player object
-    const keys = Object.keys(data);
-    return keys.some(key => {
-        const playerObj = data[key];
-        if (typeof playerObj !== "object" || playerObj === null) return false;
-        const stats = Object.values(playerObj);
-        if (stats.length === 0) return false;
-        return stats.every(arr => Array.isArray(arr) && arr.every(n => typeof n === "number")) &&
-               stats.every(arr => arr.length === stats[0].length);
+    // If data is multiple records keyed by name/id
+    return Object.values(data).every(record => {
+        if (typeof record !== 'object' || record === null) return false;
+        const stats = Object.values(record);
+        return stats.length > 0 && stats.every(arr => Array.isArray(arr) && arr.every(n => typeof n === 'number'));
     });
 }
-
 
 
 //create stats table
 function createStatsTable(statsData) {
     console.log("Creating table for stats:", statsData);
+
     const tableHead = document.getElementById('tableHead');
     const tableBody = document.getElementById('tableBody');
     const container = document.querySelector('.search-results');
 
+    // Clear previous table
     tableHead.innerHTML = '';
     tableBody.innerHTML = '';
 
     const players = Object.keys(statsData);
     if (players.length === 0) return;
 
-    // find first player that is valid game data
-    const firstPlayer = players.find(name => isPlayerGameData(statsData[name]));
-    if (!firstPlayer) {
-        console.warn("No valid player game data found.");
-        return;
-    }
+    // Use first player's stats as columns
+    const statColumns = Object.keys(statsData[players[0]]);
 
-    const statColumns = Object.keys(statsData[firstPlayer]);
+    // Build table header
+    const headerRow = document.createElement('tr');
 
-    // build header
-    const headerRow = document.createElement("tr");
-    headerRow.innerHTML =
-        `<th>Player</th>` +
-        statColumns.map(stat => `<th>${stat}</th>`).join("");
+    // Player column
+    const playerTh = document.createElement('th');
+    playerTh.textContent = 'Player';
+    headerRow.appendChild(playerTh);
+
+    // Stat columns
+    statColumns.forEach(stat => {
+        const th = document.createElement('th');
+        th.textContent = stat;
+        headerRow.appendChild(th);
+    });
+
+    // Actions column
+    const actionTh = document.createElement('th');
+    actionTh.textContent = 'Actions';
+    headerRow.appendChild(actionTh);
+
     tableHead.appendChild(headerRow);
 
-    // build each row
+    // Build table body
     players.forEach(playerName => {
         const playerStats = statsData[playerName];
-        if (!isPlayerGameData(playerStats)) return;
 
-        const averages = averageAndFloorStats(playerStats);
+        const averages = {};
+        for (const stat in playerStats) {
+            const arr = playerStats[stat];
+            const avg = arr.reduce((sum, val) => sum + val, 0) / arr.length;
+            averages[stat] = Math.floor(avg);
+        }
 
-        const row = document.createElement("tr");
-        row.innerHTML =
-            `<td>${playerName}</td>` +
-            statColumns.map(stat => `<td>${averages[stat]}</td>`).join("");
+        const row = document.createElement('tr');
+
+        // Player name
+        const nameTd = document.createElement('td');
+        nameTd.textContent = playerName;
+        row.appendChild(nameTd);
+
+        // Stat columns
+        statColumns.forEach(stat => {
+            const td = document.createElement('td');
+            td.textContent = averages[stat] !== undefined ? averages[stat] : '';
+            row.appendChild(td);
+        });
+
+        // Actions
+        const actionTd = document.createElement('td');
+
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Edit';
+        editBtn.classList.add('edit-btn');
+        editBtn.dataset.player = playerName;
+        editBtn.addEventListener('click', () => editRecord(playerName));
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.classList.add('delete-btn');
+        deleteBtn.dataset.player = playerName;
+        deleteBtn.addEventListener('click', () => deleteRecord(playerName));
+
+        actionTd.appendChild(editBtn);
+        actionTd.appendChild(deleteBtn);
+        row.appendChild(actionTd);
 
         tableBody.appendChild(row);
     });
+
     container.style.display = 'block';
 }
+
+
 
 
 
@@ -178,4 +212,32 @@ function populateSportsDropdown(sportNames) {
             averagedStats[stat] = Math.floor(avg);
         }
         return averagedStats;
-    }
+}
+
+//delete record
+function deleteRecord(playerName) {
+    if (!confirm(`Delete all stats for ${playerName}?`)) return;
+
+    const msg = {
+        action: "deleteRecord",
+        player: playerName
+    };
+
+    socket.send(JSON.stringify(msg));
+    console.log("Sent delete request:", msg);
+}
+
+//edit record
+function editRecord(playerName) {
+    const newName = prompt("Enter new name for this player:", playerName);
+    if (!newName || newName.trim() === "") return;
+
+    const msg = {
+        action: "updateRecord",
+        oldName: playerName,
+        newName: newName.trim()
+    };
+
+    socket.send(JSON.stringify(msg));
+    console.log("Sent update request:", msg);
+}

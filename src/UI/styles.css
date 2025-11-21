@@ -115,21 +115,72 @@ h3 {
 
 /* search results table */
 .search-results {
-  display: none;
-    width: 85%;
-    margin-left: auto;
-    margin-right: auto;
-    margin-top: 20px;
-    background-color: var(--nav-color);
-    border-radius: 15px;  
-    padding: 20px;
+    display: none;
+    margin: auto;
+    width: 80%;
+    padding: 10px;
+    border-radius: 20px;
 }
-.search-results table {
-    width: 100%;
-    border-collapse: collapse;
+
+    #resultsTable {
+        margin: 20px auto;
+        padding: 20px;
+        width: auto;
+        border-collapse: collapse;
+        border-radius: 12px;
+        overflow: hidden;
+        font-family: "Open Sans";
+        background-color: var(--nav-color);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+
+#tableHead {
+    background-color: var(--hover-color);
+    color: white;
+    font-family: "Inter";
 }
-.search-results th, .search-results td {
-    border: 1px solid (--secondary-color);
-    padding: 8px;
-    text-align: left;
+
+#tableHead, #tableBody {
+    border: 1px solid #ddd;
+    padding: 12px 15px;
+    text-align: center;
+}
+
+/*table buttons*/
+button.edit-btn,
+button.delete-btn {
+    padding: 6px 10px;
+    margin: 2px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+button.edit-btn {
+    background-color: #2196F3;
+    color: white;
+}
+
+    button.edit-btn:hover {
+        background-color: #1976D2;
+    }
+
+button.delete-btn {
+    background-color: #f44336;
+    color: white;
+}
+
+    button.delete-btn:hover {
+        background-color: #d32f2f;
+    }
+
+#login {
+    font-family: "Open Sans";
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
 }
