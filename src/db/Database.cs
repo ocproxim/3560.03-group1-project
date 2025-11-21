@@ -590,22 +590,22 @@ public class StatsDB
 
 
     public string FetchSports()
-        {
-            var sportNames = new List<object>();
-            string query = "SELECT sportID, sportName FROM Sports ORDER BY sportName"; 
+    {
+        var sportNames = new List<object>();
+        string query = "SELECT sportID, sportName FROM Sports ORDER BY sportName";
 
-            using (var command = new SqliteCommand(query, connection))
-            {
+        using (var command = new SqliteCommand(query, connection))
+        {
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                        sportNames.Add(new { sportName = reader.GetString(1) });
+                    sportNames.Add(new { sportName = reader.GetString(1) });
                 }
             }
         }
-            string json = JsonSerializer.Serialize(sportNames);
-            return json;
-        }
+        string json = JsonSerializer.Serialize(sportNames);
+        return json;
+    }
 
 }

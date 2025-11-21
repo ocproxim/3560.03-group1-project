@@ -1,5 +1,4 @@
 use diesel::{QueryDsl, RunQueryDsl, SelectableHelper, SqliteConnection};
-use eframe::Renderer;
 use egui::{CentralPanel, ComboBox, Grid, TextEdit, Ui};
 
 use crate::{
@@ -9,7 +8,6 @@ use crate::{
         team::{Team, TeamMembership},
     },
     pages::Page,
-    schema::Sports::sportName,
 };
 
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq)]
@@ -110,8 +108,13 @@ impl Page for AdminPage {
                             ui.selectable_value(filter, PlayerFilter::Name, "Name");
                         });
 
-                        ui.label("Fitler: ");
-                        ui.add(TextEdit::singleline(&mut self.filter_contents));
+                        if matches!(
+                            filter,
+                            PlayerFilter::Team | PlayerFilter::Sport | PlayerFilter::Name
+                        ) {
+                            ui.label("Fitler: ");
+                            ui.add(TextEdit::singleline(&mut self.filter_contents));
+                        }
                     }
                     TabSelection::Sports => {}
                     TabSelection::Teams { filter } => {
@@ -133,6 +136,7 @@ impl Page for AdminPage {
                     } else {
                         match filter {
                             PlayerFilter::Team => {
+                                println!("t");
                                 let query = &self.filter_contents;
                                 let (team, _) = self
                                     .teams
@@ -148,10 +152,13 @@ impl Page for AdminPage {
                                     })
                                     .max_by(|(_, a), (_, b)| a.total_cmp(b))
                                     .unwrap_or((&self.teams[0], 0.0));
-                                let i = team.teamID.unwrap_or(0);
+                                let i = team.teamID.unwrap();
                                 let mut team_memberships = self
                                     .memberships
                                     .iter()
+                                    .inspect(|tm| {
+                                        dbg!(tm);
+                                    })
                                     .filter(|tm| tm.teamID.is_some_and(|id| id == i));
                                 let players = self.players.iter_mut().filter(|p| {
                                     team_memberships
