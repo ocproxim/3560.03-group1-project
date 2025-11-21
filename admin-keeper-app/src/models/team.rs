@@ -30,6 +30,32 @@ impl Team {
     pub fn set_home(&mut self, new_home_town: String) {
         self.homeTown = new_home_town;
     }
+
+    pub fn ui_row(&mut self, ui: &mut egui::Ui) -> bool {
+        let mut changed = false;
+
+        let id_label = self
+            .teamID
+            .map(|id| id.to_string())
+            .unwrap_or_else(|| "*".to_string());
+        ui.label(id_label);
+
+        let mut sport_id_val = self.sportID.unwrap_or(0);
+        if ui.add(egui::DragValue::new(&mut sport_id_val)).changed() {
+            self.sportID = Some(sport_id_val);
+            changed = true;
+        }
+
+        if ui.text_edit_singleline(&mut self.teamName).changed() {
+            changed = true;
+        }
+
+        if ui.text_edit_singleline(&mut self.homeTown).changed() {
+            changed = true;
+        }
+
+        changed
+    }
 }
 #[derive(Debug, Clone, Insertable, AsChangeset, Queryable, Selectable, Identifiable)]
 #[diesel(table_name=crate::schema::TeamMemberships)]

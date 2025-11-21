@@ -1,13 +1,15 @@
-use diesel::{QueryDsl, RunQueryDsl, SelectableHelper, SqliteConnection};
+use diesel::{QueryDsl, RunQueryDsl, SelectableHelper, SqliteConnection, query_builder};
 use egui::{CentralPanel, ComboBox, Grid, TextEdit, Ui};
+use rand::Rng;
 
 use crate::{
     models::{
         player::Player,
         sport::Sport,
-        team::{Team, TeamMembership},
+        team::{self, Team, TeamMembership},
     },
     pages::Page,
+    schema::Sports::sportName,
 };
 
 #[derive(Clone, PartialEq, PartialOrd, Ord, Eq)]
@@ -131,56 +133,56 @@ impl Page for AdminPage {
             });
             match &self.tab {
                 TabSelection::Players { filter } => {
-                    if self.filter_contents.is_empty() {
-                        render_player_grid(ui, self.players.iter_mut());
-                    } else {
-                        match filter {
-                            PlayerFilter::Team => {
-                                println!("t");
-                                let query = &self.filter_contents;
-                                let (team, _) = self
-                                    .teams
-                                    .iter()
-                                    .map(|t| {
-                                        (
-                                            t,
-                                            strsim::jaro_winkler(
-                                                &format!("{} {}", t.homeTown, t.teamName),
-                                                query,
-                                            ),
-                                        )
-                                    })
-                                    .max_by(|(_, a), (_, b)| a.total_cmp(b))
-                                    .unwrap_or((&self.teams[0], 0.0));
-                                let i = team.teamID.unwrap();
-                                let mut team_memberships = self
-                                    .memberships
-                                    .iter()
-                                    .inspect(|tm| {
-                                        dbg!(tm);
-                                    })
-                                    .filter(|tm| tm.teamID.is_some_and(|id| id == i));
-                                let players = self.players.iter_mut().filter(|p| {
-                                    team_memberships
-                                        .by_ref()
-                                        .any(|tm| p.playerID == tm.playerID)
-                                });
-                                render_player_grid(ui, players);
-                            }
-                            PlayerFilter::Sport => {
-                                let query = &self.filter_contents;
-                                let (sport, _) = self
-                                    .sports
-                                    .iter()
-                                    .map(|s| (s, strsim::jaro_winkler(&s.sportName, query)))
-                                    .max_by(|(_, a), (_, b)| a.total_cmp(b))
-                                    .unwrap_or((&self.sports[0], 0.0));
+                    egui::scroll_area::ScrollArea::vertical().show(ui, |ui| match filter {
+                        PlayerFilter::Team => {
+                            let query = &self.filter_contents;
+                            let mut results = self
+                                .teams
+                                .iter()
+                                .filter_map(|t| {
+                                    let sim = strsim::jaro_winkler(
+                                        &format!("{} {}", t.homeTown, t.teamName),
+                                        query,
+                                    );
+                                    if sim > 0.7 || query.is_empty() {
+                                        return Some((t, sim));
+                                    }
+                                    None
+                                })
+                                .collect::<Vec<_>>();
+                            results.sort_by(|(_, a), (_, b)| a.total_cmp(b));
 
-                                let i = sport.sportID.unwrap_or(0);
-                                let sp = self
-                                    .sports
-                                    .iter()
-                                    .find(|sp| sp.sportID.is_some_and(|id| id == i));
+                            for (i, (team, _)) in results.into_iter().enumerate() {
+                                ui.label(format!("Team: {} {}", team.homeTown, team.teamName));
+                                let team_memberships = self.memberships.iter().filter(|tm| {
+                                    tm.teamID.is_some_and(|id| Some(id) == team.teamID)
+                                });
+                                let players = self.players.iter_mut().filter(|p| {
+                                    team_memberships.clone().any(|tm| p.playerID == tm.playerID)
+                                });
+                                render_player_grid(ui, players, &i.to_string());
+                            }
+                        }
+                        PlayerFilter::Sport => {
+                            let query = &self.filter_contents;
+                            let mut sports = self
+                                .sports
+                                .iter()
+                                .filter_map(|s| {
+                                    let sim = strsim::jaro_winkler(&s.sportName, query);
+                                    if sim > 0.7 || query.is_empty() {
+                                        return Some((s, sim));
+                                    }
+                                    None
+                                })
+                                .collect::<Vec<_>>();
+                            sports.sort_by(|(_, a), (_, b)| a.total_cmp(b));
+
+                            for (i, (sport, _)) in sports.iter().enumerate() {
+                                ui.label(format!("Sport: {}", sport.sportName));
+                                let sp = self.sports.iter().find(|sp| {
+                                    sp.sportID.is_some_and(|id| Some(id) == sport.sportID)
+                                });
                                 let teams = self
                                     .teams
                                     .iter()
@@ -190,44 +192,119 @@ impl Page for AdminPage {
                                     .memberships
                                     .iter()
                                     .filter(|tms| teams.clone().any(|t| t.teamID == tms.teamID));
-                                let ps = self.players.iter_mut().filter(|p| {
-                                    tms.clone().by_ref().any(|tm| p.playerID == tm.playerID)
-                                });
-                                render_player_grid(ui, ps);
-                            }
-                            PlayerFilter::Name => {
-                                let n = &self.filter_contents;
                                 let ps = self
                                     .players
                                     .iter_mut()
-                                    .filter(|p| strsim::jaro_winkler(n, &p.name) > 0.7);
-                                render_player_grid(ui, ps);
-                            }
-                            PlayerFilter::None => {
-                                render_player_grid(ui, self.players.iter_mut());
+                                    .filter(|p| tms.clone().any(|tm| p.playerID == tm.playerID));
+                                render_player_grid(ui, ps, &i.to_string());
                             }
                         }
-                    }
+                        PlayerFilter::Name => {
+                            let query = &self.filter_contents;
+                            let ps = self.players.iter_mut().filter(|p| {
+                                strsim::jaro_winkler(query, &p.name) > 0.7 || query.is_empty()
+                            });
+                            render_player_grid(ui, ps, "Players");
+                        }
+                        PlayerFilter::None => {
+                            render_player_grid(ui, self.players.iter_mut(), "Players");
+                        }
+                    });
                 }
-                TabSelection::Sports => {}
-                TabSelection::Teams { filter } => {}
+                TabSelection::Sports => {
+                    egui::scroll_area::ScrollArea::vertical().show(ui, |ui| {
+                        render_sport_grid(ui, self.sports.iter_mut(), "SportsGrid");
+                    });
+                }
+                TabSelection::Teams { filter } => {
+                    egui::scroll_area::ScrollArea::vertical().show(ui, |ui| match filter {
+                        TeamFilter::Sport => {
+                            let query = &self.filter_contents;
+                            let mut sports = self
+                                .sports
+                                .iter()
+                                .filter_map(|s| {
+                                    let sim = strsim::jaro_winkler(&s.sportName, query);
+                                    if sim > 0.7 || query.is_empty() {
+                                        return Some((s, sim));
+                                    }
+                                    None
+                                })
+                                .collect::<Vec<_>>();
+
+                            sports.sort_by(|(_, a), (_, b)| a.total_cmp(b));
+
+                            for (i, (sport, _)) in sports.iter().enumerate() {
+                                ui.label(format!("Sport: {}", sport.sportName));
+                                let teams =
+                                    self.teams.iter_mut().filter(|t| sport.sportID == t.sportID);
+                                render_team_grid(ui, teams, &i.to_string());
+                            }
+                        }
+                        TeamFilter::Name => {
+                            let query = &self.filter_contents;
+                            let mut results = self
+                                .teams
+                                .iter_mut()
+                                .filter_map(|t| {
+                                    let sim = strsim::jaro_winkler(
+                                        &format!("{} {}", t.homeTown, t.teamName),
+                                        query,
+                                    );
+                                    if sim > 0.7 || query.is_empty() {
+                                        return Some((t, sim));
+                                    }
+                                    None
+                                })
+                                .collect::<Vec<_>>();
+                            results.sort_by(|(_, a), (_, b)| a.total_cmp(b));
+                            let teams = results.into_iter().map(|(team, _)| team);
+                            render_team_grid(ui, teams, "Teams");
+                        }
+                        _ => {
+                            render_team_grid(ui, self.teams.iter_mut(), "Teams");
+                        }
+                    });
+                }
             }
         });
         None
     }
 }
-fn render_player_grid<'a>(ui: &mut Ui, ps: impl Iterator<Item = &'a mut Player>) {
-    egui::scroll_area::ScrollArea::vertical().show(ui, |ui| {
-        Grid::new("Players")
-            .striped(true)
-            .min_col_width(80.0)
-            .show(ui, |ui| {
-                for p in ps {
-                    p.ui_edit_row(ui);
-                    ui.end_row();
-                }
-            });
-    });
+
+fn render_sport_grid<'a>(ui: &mut Ui, sports: impl Iterator<Item = &'a mut Sport>, id: &str) {
+    Grid::new(id)
+        .striped(true)
+        .min_col_width(200.0)
+        .show(ui, |ui| {
+            for s in sports {
+                s.ui_row(ui);
+                ui.end_row();
+            }
+        });
+}
+
+fn render_team_grid<'a>(ui: &mut Ui, teams: impl Iterator<Item = &'a mut Team>, id: &str) {
+    Grid::new(id)
+        .striped(true)
+        .min_col_width(200.0)
+        .show(ui, |ui| {
+            for t in teams {
+                t.ui_row(ui);
+                ui.end_row();
+            }
+        });
+}
+fn render_player_grid<'a>(ui: &mut Ui, players: impl Iterator<Item = &'a mut Player>, id: &str) {
+    Grid::new(id)
+        .striped(true)
+        .min_col_width(200.0)
+        .show(ui, |ui| {
+            for p in players {
+                p.ui_edit_row(ui);
+                ui.end_row();
+            }
+        });
 }
 
 impl AdminPage {
