@@ -50,7 +50,7 @@ public class Search
             case SearchType.Game:
                 break;
             case SearchType.Team:
-                var teams = db.GetTeams();
+                var teams = db.GetTeamsBySport(thisSport);
                 var potentialTeams = from team in teams where Fuzz.Ratio($"{team.homeTown} {team.teamName}", query) > 70 select team;
                 if (potentialTeams.Count() == 0)
                 {
@@ -72,7 +72,12 @@ public class Search
                 }
                 break;
             case SearchType.Player:
-                var players = db.GetPlayers();
+                var players = new List<Player>();
+                var pTeams = db.GetTeamsBySport(thisSport);
+                foreach (var team in pTeams)
+                {
+                    players.AddRange(db.GetPlayersByTeam(team));
+                }
                 if (players.Count == 0)
                 {
                     Console.WriteLine("Players list was empty");
