@@ -83,6 +83,17 @@ h3 {
   left: 0%;
   position: relative;
 }
+h4 {
+  padding-bottom: 20px;
+  padding-top: 5px;
+  text-align: center;
+  font-family: "Inter";
+  font-size: 35px;
+
+  top: 20%;
+  left: 0%;
+  position: relative;
+}
 
 /*prompt container*/
 .prompt {

@@ -46,8 +46,7 @@ document.addEventListener('submit', function (event) {
         if (input.type !== "submit") input.value = '';
     });
 
-    // Optionally hide the form again
-    visibleForm.style.display = "none";
+    hideElements();
 });
 
 
