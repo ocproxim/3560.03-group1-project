@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Data.Common;
 using System.Diagnostics;
@@ -65,35 +65,127 @@ while (true)
             Console.WriteLine($"Received: {message}");
 
             var queryData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(message);
-            if (queryData != null
-                && queryData.TryGetValue("sport", out string? sport)
-                && queryData.TryGetValue("season", out string? season)
-                && queryData.TryGetValue("type", out string? type)
-                && queryData.TryGetValue("query", out string? query)
-                )
+            
+            if (queryData == null)
             {
-
-                var searchType = Enum.Parse<SearchType>(type, true);
-                var jsonResult = Search.BasicWebQuery(dBConnection, sport, searchType, query);
-                byte[] jsonResultBytes = Encoding.UTF8.GetBytes(jsonResult ?? "");
-                await socket.SendAsync(jsonResultBytes, WebSocketMessageType.Text, true, CancellationToken.None);
-                Console.WriteLine("Sent search result to client.");
+                Console.WriteLine("Failed to parse message as JSON");
+                continue;
             }
 
-            else if (queryData != null
-                && queryData.TryGetValue("fetchSport", out string? fetchSport)
-                )
+            // PRIORITY 1: Action handler (delete/update) - Check this FIRST!
+            if (queryData.TryGetValue("action", out string? action))
             {
-                // Fetch a list of sport names from the DB and return as JSON array
+                bool success = false;
+                string responseMessage = "";
+                
+                if (action == "deleteRecord" && queryData.TryGetValue("player", out string? player))
+                {
+                    Console.WriteLine($"DELETE request received for: {player}");
+                    
+                    // Pattern: looks for (ID, captures one or more digits, then looks for )
+                    Match match = Regex.Match(player, @"\(ID\s*(\d+)\)");
+
+                    if (match.Success)
+                    {
+                        string idValue = match.Groups[1].Value;
+                        int playerId = int.Parse(idValue);
+                        success = dBConnection.RemovePlayer(playerId);
+                        
+                        if (success)
+                        {
+                            responseMessage = $"Player ID {playerId} deleted successfully!";
+                            Console.WriteLine(responseMessage);
+                        }
+                        else
+                        {
+                            responseMessage = $"Failed to delete player ID {playerId}";
+                            Console.WriteLine(responseMessage);
+                        }
+                    }
+                    else
+                    {
+                        responseMessage = "Failed to parse player ID from request";
+                        Console.WriteLine(responseMessage);
+                    }
+                    
+                    // Send response back to client
+                    var deleteResponse = JsonSerializer.Serialize(new { success, message = responseMessage });
+                    byte[] deleteResponseBytes = Encoding.UTF8.GetBytes(deleteResponse);
+                    await socket.SendAsync(deleteResponseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                    Console.WriteLine("Delete response sent to client");
+                }
+                else if (action == "updateRecord" && queryData.TryGetValue("oldName", out string? oldName) && queryData.TryGetValue("newName", out string? newName))
+                {
+                    Console.WriteLine($"UPDATE request received: {oldName} -> {newName}");
+                    
+                    // Pattern: looks for (ID, captures one or more digits, then looks for )
+                    Match match = Regex.Match(oldName, @"\(ID\s*(\d+)\)");
+
+                    if (match.Success)
+                    {
+                        string idValue = match.Groups[1].Value;
+                        int playerId = int.Parse(idValue);
+                        
+                        // Get the player, update name, and save
+                        var players = dBConnection.GetPlayers();
+                        var player = players.Find(p => p.playerID == playerId);
+                        
+                        if (player != null)
+                        {
+                            player.setPlayerName(newName);
+                            success = dBConnection.UpdatePlayer(player);
+                            
+                            if (success)
+                            {
+                                responseMessage = $"Player updated to '{newName}' successfully!";
+                                Console.WriteLine(responseMessage);
+                            }
+                            else
+                            {
+                                responseMessage = "Failed to update player in database";
+                                Console.WriteLine(responseMessage);
+                            }
+                        }
+                        else
+                        {
+                            responseMessage = $"Player ID {playerId} not found";
+                            Console.WriteLine(responseMessage);
+                        }
+                    }
+                    else
+                    {
+                        responseMessage = "Failed to parse player ID from request";
+                        Console.WriteLine(responseMessage);
+                    }
+                    
+                    // Send response back to client
+                    var updateResponse = JsonSerializer.Serialize(new { success, message = responseMessage });
+                    byte[] updateResponseBytes = Encoding.UTF8.GetBytes(updateResponse);
+                    await socket.SendAsync(updateResponseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                    Console.WriteLine("Update response sent to client");
+                }
+                
+                continue; // Skip to next message
+            }
+            
+            // PRIORITY 2: Fetch sports list handler
+            if (queryData.TryGetValue("fetchSport", out string? fetchSport))
+            {
+                Console.WriteLine("Fetch sports request received");
                 var sportsList = dBConnection.FetchSports();
                 byte[] sportsBytes = Encoding.UTF8.GetBytes(sportsList);
                 await socket.SendAsync(sportsBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent sports list to client.");
+                continue;
             }
-            else if( queryData != null
-                && queryData.TryGetValue("add", out string? addToDb)
-                )
+            
+            // PRIORITY 3: ADD handler
+            if (queryData.TryGetValue("add", out string? addToDb))
             {
+                Console.WriteLine($"ADD request received for: {addToDb}");
+                bool success = false;
+                string responseMessage = "";
+                
                 switch (addToDb)
                 {
                     case "player":
@@ -106,23 +198,58 @@ while (true)
                             int.TryParse(weight, out int weightInt))
                         {
                             dBConnection.InsertPlayer(playerName, playerDob, heightInt, weightInt);
+                            success = true;
+                            responseMessage = $"Player '{playerName}' added successfully!";
+                            Console.WriteLine(responseMessage);
+                        }
+                        else
+                        {
+                            responseMessage = "Failed to add player - invalid data format";
+                            Console.WriteLine(responseMessage);
                         }
                         break;
+                        
                     case "team":
                         if (queryData.TryGetValue("name", out string? teamName) &&
                             queryData.TryGetValue("town", out string? town) &&
-                            queryData.TryGetValue("sport", out string? teamSport) &&
-                            (dBConnection.GetSportByName(teamSport) != null))
+                            queryData.TryGetValue("sport", out string? teamSport))
                         {
-                            dBConnection.InsertTeam(dBConnection.GetSportByName(teamSport), teamName, town);
+                            var sportObj = dBConnection.GetSportByName(teamSport);
+                            if (sportObj != null)
+                            {
+                                dBConnection.InsertTeam(sportObj, teamName, town);
+                                success = true;
+                                responseMessage = $"Team '{teamName}' added successfully!";
+                                Console.WriteLine(responseMessage);
+                            }
+                            else
+                            {
+                                responseMessage = $"Sport '{teamSport}' not found. Please add the sport first.";
+                                Console.WriteLine(responseMessage);
+                            }
+                        }
+                        else
+                        {
+                            responseMessage = "Failed to add team - missing required fields";
+                            Console.WriteLine(responseMessage);
                         }
                         break;
+                        
                     case "sport":
-                        if (queryData.TryGetValue("sport", out string? sportName))
+                        if (queryData.TryGetValue("sport", out string? sportName) && !string.IsNullOrEmpty(sportName))
                         {
-                            if (sportName != "") dBConnection.InsertSport(sportName);
+                            dBConnection.InsertSport(sportName);
+                            success = true;
+                            responseMessage = $"Sport '{sportName}' added successfully!";
+                            Console.WriteLine(responseMessage);
+                        }
+                        else
+                        {
+                            responseMessage = "Failed to add sport - sport name is required";
+                            Console.WriteLine(responseMessage);
                         }
                         break;
+                        
                     case "game":
                         if (queryData.TryGetValue("hTeam", out string? homeTeam) &&
                             queryData.TryGetValue("aTeam", out string? awayTeam) &&
@@ -134,53 +261,71 @@ while (true)
                             float.TryParse(awayTeamScore, out float aTeamScore) &&
                             DateTime.TryParseExact(time, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime gameTime))
                         {
-                            dBConnection.InsertGame(dBConnection.GetTeamByName(homeTeam).getTeamID(), 
-                                                    dBConnection.GetTeamByName(awayTeam).getTeamID(),
-                                                    hTeamScore, aTeamScore, gameTime,venue);
+                            var hTeam = dBConnection.GetTeamByName(homeTeam);
+                            var aTeam = dBConnection.GetTeamByName(awayTeam);
+                            
+                            if (hTeam != null && aTeam != null)
+                            {
+                                dBConnection.InsertGame(hTeam.getTeamID(), aTeam.getTeamID(), hTeamScore, aTeamScore, gameTime, venue);
+                                success = true;
+                                responseMessage = $"Game '{homeTeam} vs {awayTeam}' added successfully!";
+                                Console.WriteLine(responseMessage);
+                            }
+                            else
+                            {
+                                responseMessage = "One or both teams not found. Please add the teams first.";
+                                Console.WriteLine(responseMessage);
+                            }
+                        }
+                        else
+                        {
+                            responseMessage = "Failed to add game - invalid data format";
+                            Console.WriteLine(responseMessage);
                         }
                         break;
+                        
                     default:
+                        responseMessage = $"Unknown add type: {addToDb}";
+                        Console.WriteLine(responseMessage);
                         break;
                 }
+                
+                // Send response back to client
+                var addResponse = JsonSerializer.Serialize(new { success, message = responseMessage });
+                byte[] addResponseBytes = Encoding.UTF8.GetBytes(addResponse);
+                await socket.SendAsync(addResponseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                Console.WriteLine("Add response sent to client");
+                continue;
             }
-            if (queryData != null
-                && queryData.TryGetValue("email", out string? email)
-                && queryData.TryGetValue("password", out string? passwordHash)
-                )
+            
+            // PRIORITY 4: Authentication handler
+            if (queryData.TryGetValue("email", out string? email) &&
+                queryData.TryGetValue("password", out string? passwordHash))
             {
+                Console.WriteLine($"Authentication request received for: {email}");
                 var userRole = Search.authenticate(dBConnection, email, passwordHash);
                 byte[] stringResultBytes = Encoding.UTF8.GetBytes("" + userRole);
                 await socket.SendAsync(stringResultBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent UserRole: " + userRole + " to client.");
+                continue;
             }
-            if (queryData != null && queryData.TryGetValue("action", out string? action) && queryData.TryGetValue("player", out string? player))
+            
+            // PRIORITY 5: Search query handler (most general, check LAST)
+            if (queryData.TryGetValue("sport", out string? sport) &&
+                queryData.TryGetValue("season", out string? season) &&
+                queryData.TryGetValue("type", out string? type) &&
+                queryData.TryGetValue("query", out string? query))
             {
-
-                if (action == "deleteRecord")
-                {
-
-                    // Pattern: looks for (ID, captures one or more digits, then looks for )
-                    Match match = Regex.Match(player, @"\(ID\s(\d+)\)");
-
-                    string idValue = "";
-
-                    if (match.Success)
-                    {
-                        idValue = match.Groups[1].Value;
-
-                    }
-                    if (!string.IsNullOrEmpty(idValue))
-                    {
-                        int playerId = int.Parse(idValue);
-                        dBConnection.RemovePlayer(playerId);
-                    }
-                }
+                Console.WriteLine($"Search request received: {query} in {sport} ({type})");
+                var searchType = Enum.Parse<SearchType>(type, true);
+                var jsonResult = Search.BasicWebQuery(dBConnection, sport, searchType, query);
+                byte[] jsonResultBytes = Encoding.UTF8.GetBytes(jsonResult ?? "");
+                await socket.SendAsync(jsonResultBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                Console.WriteLine("Sent search result to client.");
+                continue;
             }
-            /*string response = $"Received: {message}";
-            byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-
-            await socket.SendAsync(responseBytes, WebSocketMessageType.Text, true, CancellationToken.None);
-            */
+            
+            Console.WriteLine("Unknown message type received");
         }
     }
     else
