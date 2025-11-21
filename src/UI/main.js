@@ -59,12 +59,6 @@ searchForm.addEventListener('submit', function(event) {
         socket.send(JSON.stringify(message));
         console.log("Sent:", message);
     }
-
-    // clear the input field
-    searchInput.value = '';
-    searchSportForm.value = '';
-    searchSeasonForm.value = '';
-    searchTypeForm.value = '';
 });
 
 // Checks if an object is valid data

@@ -120,31 +120,31 @@ h3 {
     width: 80%;
     padding: 10px;
     border-radius: 20px;
+    text-align: center;
 }
 
-    #resultsTable {
-        margin: 20px auto;
-        padding: 20px;
-        width: auto;
-        border-collapse: collapse;
-        border-radius: 12px;
-        overflow: hidden;
-        font-family: "Open Sans";
-        background-color: var(--nav-color);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+#resultsTable {
+    margin: 20px auto;
+    padding: 20px;
+    width: auto;
+    border-collapse: collapse;
+    border-radius: 12px;
+    overflow: hidden;
+    font-family: "Open Sans";
+    background-color: var(--nav-color);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
 
 
-#tableHead {
+#tableHead th {
     background-color: var(--hover-color);
-    color: white;
+    color: black;
     font-family: "Inter";
 }
 
-#tableHead, #tableBody {
+#tableHead th, #tableBody tb {
     border: 1px solid #ddd;
     padding: 12px 15px;
-    text-align: center;
 }
 
 /*table buttons*/
