@@ -13,7 +13,7 @@ listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
 //This relative path is from the executable location, so fix it if necessary when testing
-StatsDB dBConnection = new StatsDB("./sqlite.db");
+StatsDB dBConnection = new StatsDB("D:\\School\\CS 3560 - OOP\\ScoreKeeping\\sqlite.db");
 
 //open HTML interface in default browser
 Process process = new Process();
@@ -22,7 +22,7 @@ try
     process.StartInfo.UseShellExecute = true;
 
     //This relative path is from the executable location, so fix it if necessary when testing
-    process.StartInfo.FileName = "..\\..\\..\\src\\UI\\main.html";
+    process.StartInfo.FileName = "D:\\School\\CS 3560 - OOP\\ScoreKeeping\\src\\UI\\main.html";
     process.Start();
 }
 catch
@@ -60,7 +60,7 @@ while (true)
             var queryData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(message);
             if (queryData != null
                 && queryData.TryGetValue("sport", out string? sport)
-                //added season selection, might want to update search and database to use season as well
+                && queryData.TryGetValue("season", out string? season)
                 && queryData.TryGetValue("type", out string? type)
                 && queryData.TryGetValue("query", out string? query)
                 )

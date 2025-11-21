@@ -35,7 +35,8 @@ public class Search
         {
             Console.WriteLine("Did not find a user has that email");
             return -1;
-        } else if (matchedUser.passwordHash != hashedPassword)
+        }
+        else if (matchedUser.passwordHash != hashedPassword)
         {
             Console.WriteLine("Wrong Password");
             return -1;
@@ -74,7 +75,7 @@ public class Search
             case SearchType.Game:
                 break;
             case SearchType.Team:
-                var teams = db.GetTeams();
+                var teams = db.GetTeamsBySport(thisSport);
                 var potentialTeams = from team in teams where Fuzz.Ratio($"{team.homeTown} {team.teamName}", query) > 70 select team;
                 if (potentialTeams.Count() == 0)
                 {
@@ -96,7 +97,16 @@ public class Search
                 }
                 break;
             case SearchType.Player:
-                var players = db.GetPlayers();
+                var players = new List<Player>();
+                var pTeams = db.GetTeamsBySport(thisSport);
+                if (pTeams.Count == 0)
+                {
+                    Console.WriteLine("No teams found that matched sport");
+                }
+                foreach (var team in pTeams)
+                {
+                    players.AddRange(db.GetPlayersByTeam(team));
+                }
                 if (players.Count == 0)
                 {
                     Console.WriteLine("Players list was empty");
@@ -104,7 +114,7 @@ public class Search
 
                 //Use a fuzzy string matching algorithm to compare query to player names, add them to results if they match above a certain threshold
                 var potentialPlayers = from player in players
-                                       where Fuzz.Ratio(player.name, query) > 70
+                                       where Fuzz.Ratio(player.name, query) > 60
                                        select player;
                 if (potentialPlayers.Count() == 0)
                 {
