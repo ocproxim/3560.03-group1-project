@@ -17,7 +17,7 @@ class AuthCheck {
     }
 
     logOut(){
-        localStorage.removeItem("UserRole")
+        localStorage.removeItem("UserRole");
         window.location.replace("main.html"); //replaces window
     }
 }
