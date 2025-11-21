@@ -1,0 +1,12 @@
+-- Your SQL goes here
+CREATE TABLE `Games` (
+`gameID` INTEGER PRIMARY KEY, 
+`homeTeamID` INTEGER , 
+`awayTeamID` INTEGER , 
+`homeScore` REAL NOT NULL, 
+`awayScore` REAL NOT NULL, 
+`gameTime` TEXT NOT NULL, 
+`venue` TEXT NOT NULL,
+FOREIGN KEY(homeTeamID) REFERENCES Teams(teamID)
+FOREIGN KEY(awayTeamID) REFERENCES Teams(teamID)
+);
