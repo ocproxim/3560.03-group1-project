@@ -1,9 +1,8 @@
-const CryptoJS = require("crypto-js");
 const socket = new WebSocket("ws://localhost:8080");
 
 //get string input
 const loginForm = document.getElementById('login');
-const cancelButton = document.querySelector('cancelbtn');
+const cancelButton = document.getElementById('cancelButton');
 const emailInput = document.getElementById('emailInput');
 const pwdInput = document.getElementById('pwdInput');
 
@@ -58,5 +57,6 @@ loginForm.addEventListener('submit', (e) => {
 });
 
 cancelButton.addEventListener('click', function() {
+    console.log("Button was clicked!");
     window.location.replace("main.html");
 });
