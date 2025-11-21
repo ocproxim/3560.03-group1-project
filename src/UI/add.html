@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Sports Statistic Archive</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Fonts -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+    </style>
+    <script src="https://kit.fontawesome.com/1b8ddd48da.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <!-- Top Bar Buttons -->
+    <div class="container">
+        <div class="navbar">
+            <nav>
+                <ul>
+                    <li><a href='main.html'>Home</a></li>
+                    <li><a href='main.html'>Search</a></li>
+                    <li><a href='add.html'>Add</a></li>
+                    <li><a href='login.html'>Login</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+    <h3>Add Record to Archive:</h3>
+
+    <!-- Add Select Form -->
+    <div class="prompt">
+        <p>Choose Record type to Add: </p>
+        <form id="add">
+            <select id="addType">
+                <option value="">-- --- --- --</option>
+                <option value="sport">Sport</option>
+                <option value="team">Team</option>
+                <option value="game">Game</option>
+                <option value="player">Player</option>
+            </select>
+        </form>
+    </div>
+    <div class="entryOptions">
+        <!-- Add Sport Form -->
+        <form id="sportForm">
+            <label for="sport">Enter Sport Name:</label>
+            <input type="text" id="sport" name="sport"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <!-- Add Team Form -->
+        <form id="teamForm">
+            <label for="name">Team Name:</label>
+            <input type="text" id="name" name="name"><br><br>
+            <label for="town">Enter Home Town:</label>
+            <input type="text" id="town" name="town"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <!-- Add Game Form -->
+        <form id="gameForm">
+            <label for="hTeam">Enter Home Team Name:</label>
+            <input type="text" id="hTeam" name="hTeam"><br><br>
+            <label for="aTeam">Enter Away Team Name:</label>
+            <input type="text" id="aTeam" name="aTeam"><br><br>
+            <label for="hTeamScore">Enter Home Team Score:</label>
+            <input type="text" id="hTeamScore" name="hTeamScore"><br><br>
+            <label for="aTeamScore">Enter Away Team Name:</label>
+            <input type="text" id="aTeamScore" name="aTeamScore"><br><br>
+            <label for="time">Enter Match Length:</label>
+            <input type="text" id="time" name="time"><br><br>
+            <label for="venue">Enter Venue Name:</label>
+            <input type="text" id="venue" name="venue"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+        <!-- Add Player Form -->
+        <form id="playerForm">
+            <label for="name">Player Name:</label>
+            <input type="text" id="name" name="name"><br><br>
+            <label for="dob">Enter Birth Date (YYYY-MM-DD):</label>
+            <input type="text" id="dob" name="dob"><br><br>
+            <label for="height">Enter Height:</label>
+            <input type="text" id="height" name="height"><br><br>
+            <label for="weight">Enter Weight:</label>
+            <input type="text" id="weight" name="weight"><br><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+    
+
+    <script src="add.js"></script>
+</body>
+
+
+</html>
