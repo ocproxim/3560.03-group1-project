@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Sports Statistic Archive</title>
+        <link rel="stylesheet" href="styles.css">
+
+        <!-- Fonts -->
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap');
+        </style>
+        <script src="https://kit.fontawesome.com/1b8ddd48da.js" crossorigin="anonymous"></script>
+        <script type="text/javascript" src="login_validation.js" defer></script>
+    </head>
+
+    <body>
+        <form id="login" action="login_validation.js" method="post">
+            <div class="imgcontainer">
+                <img src="img_avatar2.png" alt="Avatar" class="avatar">
+            </div>
+
+            <div class="wrapper">
+                <label for="uname"><b>E-mail</b></label>
+                <input type="email" placeholder="Enter E-mail" name="email" id="emailInput" required>
+            </div>
+            <div>
+                <label for="psw"><b>Password</b></label>
+                <input type="password" placeholder="Enter Password" name="psw" id="pwdInput" required>
+            </div>
+            <div>
+                <button type="submit">Login</button>
+                <label>
+                    <input type="checkbox" checked="checked" name="remember"> Remember me
+                </label>
+            </div>
+
+            <div class="wrapper" style="background-color:#f1f1f1">
+                <button type="button" class="cancelbtn">Cancel</button>
+            </div>
+        </form>
+    </body>
+
+</html>

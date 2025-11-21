@@ -18,9 +18,9 @@
         <div class="navbar">
             <nav>
                 <ul>
-                    <la><a href='main.html'>Home</a></la>
-                    <la><a href='main.html'>Search</a></la>
-                    <la><a href='main.html'>Login</a></la>
+                    <li><a href='main.html'>Home</a></li>
+                    <li><a href='main.html'>Search</a></li>
+                    <li><a href='login.html'>Login</a></li>
                 </ul>
             </nav>
         </div>
@@ -32,15 +32,20 @@
     </div>
 
     <!-- Search Container -->
-    <div class="search-container">
-        <!-- Get user search information -->
-        <form id="search">
-            <select id="sportType">
-                <option value="">-- Select a Sport --</option>
-                <option value="baseball">Baseball</option>
-                <option value="basketball">Basketball</option>
-                <option value="soccer">Soccer</option>
-            </select>
+     <div class="search-container">
+         <!-- Get user search information -->
+         <form id="search">
+             <select id="searchSport">
+                 <option value="">-- Select a Sport --</option>
+             </select>
+
+             <select id="searchSeason">
+                 <option value = "">-- Select a Season --</option>
+                 <option value="2025">2025</option>
+                 <option value="2024">2024</option>
+                 <option value="2023">2023</option>
+                 <option value="2022">2022</option>
+             </select>
 
             <select id="searchType">
                 <option value="">-- Select a Search Type --</option>
@@ -49,18 +54,24 @@
                 <option value="team">Team</option>
             </select>
 
-            <input type="search" id="searchInput" placeholder="">
-            <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
-        </form>
-        <!-- JavaScript to get Search Info-->
-        <script src="main.js"></script>
+             <input type="search" id="searchInput" placeholder="">
+             <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+         </form>
+         
 
-    </div>
-
-    <!-- Search Results -->
-    <div class="search-results">
-
-    </div>
+     </div>
+    
+      <!-- Search Results -->
+      <div class="search-results">
+          <table id="resultsTable">
+              <thead id="tableHead">
+              </thead>
+              <tbody id="tableBody">
+              </tbody>
+          </table>
+      </div>
+    <script src="main.js"></script>
+  </body>
 
 </body>
 
