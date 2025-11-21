@@ -10,7 +10,7 @@ class AuthCheck {
 
     validateAuthentication(UserRole){
         if (UserRole == -1 || UserRole == 0){
-            window.location.replace("/"); //replaces window when user is not logged in or a normal user
+            window.location.replace("main.html"); //replaces window when user is not logged in or a normal user
         } else {
             document.querySelector("body").style.display = "block"; //shows window to user after confirming authentication
         }
@@ -18,7 +18,7 @@ class AuthCheck {
 
     logOut(){
         localStorage.removeItem("UserRole")
-        window.location.replace("/"); //replaces window
+        window.location.replace("main.html"); //replaces window
     }
 }
 
