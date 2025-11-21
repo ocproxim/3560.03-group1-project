@@ -5,12 +5,14 @@ using Microsoft.Data.Sqlite;
 public class Team
 {
     public int teamID;
+    public int sportID;
     public String teamName;
     public String homeTown;
 
-    public Team(int id, string name, string town)
+    public Team(int id, int sID, string name, string town)
     {
         teamID = id;
+        sportID = sID;
         teamName = name;
         homeTown = town;
     }
@@ -26,10 +28,11 @@ public class Team
     public static Team FromReader(SqliteDataReader reader)
     {
         var id = reader.GetInt32(0);
-        var name = reader.GetString(1);
-        var town = reader.GetString(2);
+        var sID = reader.GetInt32(1);
+        var name = reader.GetString(2);
+        var town = reader.GetString(3);
 
-        return new Team(id, name, town);
+        return new Team(id, sID, name, town);
 
     }
 }

@@ -19,8 +19,6 @@ public class StatsDB
         command.CommandText = "DELETE FROM Games WHERE gameID = @gameID";
         command.Parameters.AddWithValue("@gameID", gameID);
 
-        // We do NOT decrement gameCount here. 
-        // If we did, the next Insert would try to reuse an ID that might still exist, causing a collision.
         return command.ExecuteNonQuery() > 0;
     }
 
@@ -266,7 +264,7 @@ public class StatsDB
         return new Player((int)newID, name, dateOfBirth.ToShortDateString(), height, weight);
     }
 
-    public Team InsertTeam(string teamName, string homeTown)
+    public Team InsertTeam(Sport sport, string teamName, string homeTown)
     {
         var command = connection.CreateCommand();
         command.CommandText = "INSERT INTO Teams (teamName, homeTown) " +
@@ -278,7 +276,7 @@ public class StatsDB
 
         long newID = (long)command.ExecuteScalar();
 
-        return new Team((int)newID, teamName, homeTown);
+        return new Team((int)newID, sport.sportID, teamName, homeTown);
     }
 
     public Sport InsertSport(string sportName)
@@ -460,7 +458,7 @@ public class StatsDB
     public List<Team> GetTeams()
     {
         var sqlCommand = connection.CreateCommand();
-        sqlCommand.CommandText = "SELECT teamID,teamName,homeTown FROM Teams";
+        sqlCommand.CommandText = "SELECT teamID,sportID,teamName,homeTown FROM Teams";
         var reader = sqlCommand.ExecuteReader();
 
         List<Team> retVal = new List<Team>();
@@ -469,6 +467,21 @@ public class StatsDB
             retVal.Add(Team.FromReader(reader));
         }
         return retVal;
+    }
+    public List<Team> GetTeamsBySport(Sport sport)
+    {
+        var sqlCommand = connection.CreateCommand();
+        sqlCommand.CommandText = "SELECT teamID,sportID,teamName,homeTown FROM Teams WHERE sportID = $sportID";
+        sqlCommand.Parameters.AddWithValue("$sportID", sport.sportID);
+        var reader = sqlCommand.ExecuteReader();
+
+        List<Team> retVal = new List<Team>();
+        while (reader.Read())
+        {
+            retVal.Add(Team.FromReader(reader));
+        }
+        return retVal;
+
     }
     public List<Game> GetGamesByPlayer(Player player)
     {
@@ -577,22 +590,22 @@ public class StatsDB
 
 
     public string FetchSports()
-        {
-            var sportNames = new List<object>();
-            string query = "SELECT sportID, sportName FROM Sports ORDER BY sportName"; 
+    {
+        var sportNames = new List<object>();
+        string query = "SELECT sportID, sportName FROM Sports ORDER BY sportName";
 
-            using (var command = new SqliteCommand(query, connection))
-            {
+        using (var command = new SqliteCommand(query, connection))
+        {
             using (var reader = command.ExecuteReader())
             {
                 while (reader.Read())
                 {
-                        sportNames.Add(new { sportName = reader.GetString(1) });
+                    sportNames.Add(new { sportName = reader.GetString(1) });
                 }
             }
         }
-            string json = JsonSerializer.Serialize(sportNames);
-            return json;
-        }
+        string json = JsonSerializer.Serialize(sportNames);
+        return json;
+    }
 
 }
