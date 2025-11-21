@@ -11,14 +11,19 @@ socket.addEventListener('open', () => {
 });
 
 socket.addEventListener('message', (event) => {
-    try{
+    try
+    {
         console.log("Message from server:", event.data);
         const data = event.data;
-        if (data.compare("-1")){
+        
+        if (data.compare("-1"))
+        {
             emailInput.value = '';
             pwdInput.value = '';
             console.log("Wrong E-mail and/or Password");
-        } else {
+        } 
+        else
+        {
             localStorage.setItem("UserRole", data); //creates local application variable to track UserRole
             window.location.replace("main.html"); //replaces window to user after confirming login
         }
