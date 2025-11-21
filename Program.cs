@@ -4,6 +4,7 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using static Search;
 
 //start WebSocket server
@@ -13,7 +14,7 @@ listener.Start();
 Console.WriteLine("WebSocket server running on ws://localhost:8080 ...");
 
 //This relative path is from the executable location, so fix it if necessary when testing
-StatsDB dBConnection = new StatsDB("D:\\School\\CS 3560 - OOP\\ScoreKeeping\\sqlite.db");
+StatsDB dBConnection = new StatsDB("./sqlite.db");
 
 //open HTML interface in default browser
 Process process = new Process();
@@ -73,7 +74,7 @@ while (true)
                 Console.WriteLine("Sent search result to client.");
             }
 
-            else if( queryData != null
+            else if (queryData != null
                 && queryData.TryGetValue("fetchSport", out string? fetchSport)
                 )
             {
@@ -92,7 +93,30 @@ while (true)
                 byte[] stringResultBytes = Encoding.UTF8.GetBytes("" + userRole);
                 await socket.SendAsync(stringResultBytes, WebSocketMessageType.Text, true, CancellationToken.None);
                 Console.WriteLine("Sent UserRole: " + userRole + " to client.");
-            }            
+            }
+            if (queryData != null && queryData.TryGetValue("action", out string? action) && queryData.TryGetValue("player", out string? player))
+            {
+
+                if (action == "deleteRecord")
+                {
+
+                    // Pattern: looks for (ID, captures one or more digits, then looks for )
+                    Match match = Regex.Match(player, @"\(ID\s(\d+)\)");
+
+                    string idValue = "";
+
+                    if (match.Success)
+                    {
+                        idValue = match.Groups[1].Value;
+
+                    }
+                    if (!string.IsNullOrEmpty(idValue))
+                    {
+                        int playerId = int.Parse(idValue);
+                        dBConnection.RemovePlayer(playerId);
+                    }
+                }
+            }
             /*string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 

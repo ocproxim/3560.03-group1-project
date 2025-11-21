@@ -6,6 +6,6 @@ CREATE TABLE `TeamMemberships` (
 `teamID` INTEGER, 
 `season` TEXT NOT NULL, 
 `jerseyNumber` INTEGER NOT NULL,
-FOREIGN KEY(`playerID`) REFERENCES Players(`playerID`),
-FOREIGN KEY(`teamID`) REFERENCES Teams(`teamID`)
+FOREIGN KEY(`playerID`) REFERENCES Players(`playerID`) ON DELETE CASCADE ,
+FOREIGN KEY(`teamID`) REFERENCES Teams(`teamID`) ON DELETE CASCADE
 );

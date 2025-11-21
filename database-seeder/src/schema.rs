@@ -79,6 +79,7 @@ diesel::table! {
 
 diesel::joinable!(StatInstances -> Games (gameID));
 diesel::joinable!(StatInstances -> Players (playerID));
+diesel::joinable!(StatInstances -> StatKinds (statKindID));
 diesel::joinable!(StatKinds -> Sports (sportID));
 diesel::joinable!(TeamMemberships -> Players (playerID));
 diesel::joinable!(TeamMemberships -> Teams (teamID));
