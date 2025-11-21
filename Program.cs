@@ -89,10 +89,10 @@ while (true)
                 )
             {
                 var userRole = Search.authenticate(dBConnection, email, passwordHash);
-                Console.WriteLine(userRole);
-            }
-            string response = $"Received: {message}";
-            
+                byte[] stringResultBytes = Encoding.UTF8.GetBytes("" + userRole);
+                await socket.SendAsync(stringResultBytes, WebSocketMessageType.Text, true, CancellationToken.None);
+                Console.WriteLine("Sent UserRole: " + userRole + " to client.");
+            }            
             /*string response = $"Received: {message}";
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
 
