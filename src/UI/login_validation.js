@@ -35,6 +35,9 @@ socket.addEventListener('message', (event) => {
 loginForm.addEventListener('submit', (e) => {
     // stop page reload
     // e.preventDefault(); 
+    if (localStorage.getItem("UserRole") != null){
+        localStorage.removeItem("UserRole");
+    }
 
     // get the login input
     const emailString = emailInput.value;
