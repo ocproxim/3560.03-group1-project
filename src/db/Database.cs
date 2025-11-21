@@ -12,6 +12,10 @@ public class StatsDB
         {
             connection.Open();
         }
+        var command = connection.CreateCommand();
+        command.CommandText = "PRAGMA foreign_keys = ON";
+        command.ExecuteNonQuery();
+
     }
     public bool RemoveGame(int gameID)
     {
